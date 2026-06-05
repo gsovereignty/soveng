@@ -1,0 +1,21 @@
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: oklch(0.08 0 0);
+  --color-foreground: oklch(0.75 0.2 145);
+  --color-card: oklch(0.12 0 0);
+  --color-card-foreground: oklch(0.75 0.2 145);
+  --color-border: oklch(0.25 0.05 145);
+  --color-ring: oklch(0.75 0.2 145);
+  --radius: 0rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
