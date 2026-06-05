@@ -4,18 +4,121 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: oklch(0.08 0 0);
-  --color-foreground: oklch(0.75 0.2 145);
-  --color-card: oklch(0.12 0 0);
-  --color-card-foreground: oklch(0.75 0.2 145);
-  --color-border: oklch(0.25 0.05 145);
-  --color-ring: oklch(0.75 0.2 145);
+  /* Terminal color palette — classic green phosphor on near-black */
+  --color-terminal-bg: oklch(0.06 0 0);
+  --color-terminal-surface: oklch(0.11 0.01 145);
+  --color-terminal-green: oklch(0.75 0.2 145);
+  --color-terminal-green-dim: oklch(0.55 0.15 145);
+  --color-terminal-amber: oklch(0.78 0.18 75);
+  --color-terminal-border: oklch(0.22 0.04 145);
+  --color-terminal-muted: oklch(0.38 0.05 145);
+
+  /* shadcn semantic token overrides */
+  --color-background: var(--color-terminal-bg);
+  --color-foreground: var(--color-terminal-green);
+  --color-card: var(--color-terminal-surface);
+  --color-card-foreground: var(--color-terminal-green);
+  --color-border: var(--color-terminal-border);
+  --color-ring: var(--color-terminal-green);
+  --color-muted: var(--color-terminal-surface);
+  --color-muted-foreground: var(--color-terminal-muted);
+  --color-primary: var(--color-terminal-green);
+  --color-primary-foreground: var(--color-terminal-bg);
+  --color-popover: var(--color-terminal-surface);
+  --color-popover-foreground: var(--color-terminal-green);
+  --color-secondary: var(--color-terminal-surface);
+  --color-secondary-foreground: var(--color-terminal-green-dim);
+  --color-destructive: oklch(0.65 0.22 25);
+  --color-accent: var(--color-terminal-surface);
+  --color-accent-foreground: var(--color-terminal-green);
+  --color-input: var(--color-terminal-border);
+
+  /* Monospace-everywhere: alias font-sans to font-mono */
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+  --font-sans: var(--font-mono);
+
+  /* Zero border radius for terminal aesthetic */
   --radius: 0rem;
 }
 
+/* Base reset for terminal look */
 @layer base {
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
+  body {
+    background-color: var(--color-terminal-bg);
+    color: var(--color-terminal-green);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+}
+
+/* CRT phosphor glow on text */
+.crt-glow {
+  text-shadow:
+    0 0 4px oklch(0.75 0.2 145 / 0.8),
+    0 0 10px oklch(0.75 0.2 145 / 0.4),
+    0 0 20px oklch(0.75 0.2 145 / 0.15);
+}
+
+/* CRT scanline overlay */
+.crt-scanlines {
+  position: relative;
+}
+
+.crt-scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    oklch(0 0 0 / 0.12) 2px,
+    oklch(0 0 0 / 0.12) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+  border-radius: inherit;
+}
+
+/* CRT flicker animation */
+@keyframes crt-flicker {
+  0%   { opacity: 1; }
+  5%   { opacity: 0.97; }
+  10%  { opacity: 1; }
+  15%  { opacity: 0.98; }
+  20%  { opacity: 1; }
+  55%  { opacity: 1; }
+  60%  { opacity: 0.96; }
+  65%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: crt-flicker 8s infinite;
+}
+
+/* Blinking cursor animation */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Boot sequence line reveal animation */
+@keyframes line-reveal {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.line-reveal {
+  animation: line-reveal 0.15s ease-out forwards;
 }
