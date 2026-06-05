@@ -32,7 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Visiting the GitHub Pages URL shows a styled placeholder page with monospace type and terminal color palette
   2. The Vite build produces static assets with the correct `base` path — no 404s when navigating the deployed URL
   3. A GitHub Actions push to main automatically builds and publishes the site, including a 404.html SPA fallback
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold Vite+React+shadcn, terminal theme, reusable boot-sequence placeholder
+- [ ] 01-02-PLAN.md — Vite base, SPA 404 fallback, GitHub Actions to Pages deploy
 **UI hint**: yes
 
 ### Phase 2: Nostr Data Layer
@@ -82,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold & Deploy | 0/? | Not started | - |
+| 1. Scaffold & Deploy | 0/2 | Not started | - |
 | 2. Nostr Data Layer | 0/? | Not started | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
