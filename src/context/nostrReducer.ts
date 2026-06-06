@@ -1,5 +1,5 @@
 import type { Event } from "nostr-tools/core"
-import { articleCoordinate, parseArticle } from "@/lib/nostr"
+import { articleCoordinate, parseArticle, parseProfile } from "@/lib/nostr"
 import type { Article, NostrStatus, Profile } from "@/types/nostr"
 
 export type NostrState = {
@@ -38,7 +38,14 @@ export function nostrReducer(state: NostrState, action: NostrAction): NostrState
       }
     }
     case "PROFILE_RECEIVED": {
-      // Pass-through no-op for now — Plan 02 implements profile resolution
+      const profile = parseProfile(action.event)
+      const existing = state.profiles.get(action.event.pubkey)
+      // Newest-wins: only accept if no existing profile OR event is strictly newer (Pitfall 4: strict >)
+      if (!existing || action.event.created_at > existing.createdAt) {
+        const profiles = new Map(state.profiles)
+        profiles.set(action.event.pubkey, profile)
+        return { ...state, profiles }
+      }
       return state
     }
     case "SET_STATUS": {
