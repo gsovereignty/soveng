@@ -39,7 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plansPlans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Scaffold Vite+React+shadcn, terminal theme, reusable boot-sequence placeholder
+- [x] 01-01-PLAN.md — Scaffold Vite+React+shadcn, terminal theme, reusable boot-sequence placeholder
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold & Deploy | 0/2 | Not started | - |
+| 1. Scaffold & Deploy | 1/2 | In Progress|  |
 | 2. Nostr Data Layer | 0/? | Not started | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
