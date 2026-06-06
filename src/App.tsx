@@ -1,6 +1,11 @@
 import { BootSequence } from "@/components/BootSequence"
+import { NostrProvider } from "@/context/NostrContext"
+import { useNostr } from "@/context/NostrContext"
 
-function App() {
+// AppShell reads context — must live inside NostrProvider
+function AppShell() {
+  const { status, articles } = useNostr()
+
   return (
     <div className="crt-scanlines crt-flicker min-h-screen bg-terminal-bg flex flex-col items-center justify-center p-8">
       <header className="w-full max-w-2xl mb-6">
@@ -9,7 +14,13 @@ function App() {
         </p>
       </header>
       <main className="w-full max-w-2xl">
-        <BootSequence />
+        {status === "streaming" ? (
+          <BootSequence />
+        ) : (
+          <pre className="text-terminal-muted text-xs font-mono">
+            {`status: ${status}\narticles: ${articles.length}`}
+          </pre>
+        )}
       </main>
       <footer className="w-full max-w-2xl mt-6">
         <p className="text-terminal-muted text-xs">
@@ -20,4 +31,10 @@ function App() {
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <NostrProvider>
+      <AppShell />
+    </NostrProvider>
+  )
+}

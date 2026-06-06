@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import type { Article, NostrStatus, Profile } from "@/types/nostr"
 import { nostrReducer, initialState } from "@/context/nostrReducer"
 import type { NostrAction, NostrState } from "@/context/nostrReducer"
+import { useArticleFetch } from "@/hooks/useArticleFetch"
 
 export type { NostrAction }
 
@@ -14,6 +15,9 @@ export function NostrProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(nostrReducer, initialState)
 
   const refetch = useCallback(() => dispatch({ type: "RESET" }), [])
+
+  // Wire the streaming article fetch hook — runs for the provider lifetime, re-runs on refetch
+  useArticleFetch(state.fetchKey, dispatch, state.articles.length)
 
   const value = useMemo(
     () => ({ ...state, refetch }),
