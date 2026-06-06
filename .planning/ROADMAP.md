@@ -61,7 +61,21 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Author display data (name, picture) is resolved via a single batch kind:0 subscription covering all 21 pubkeys
   5. Articles with missing optional tags (`title`, `summary`, `image`, `published_at`) still produce a valid article record — no card crashes or blank fields due to absent metadata
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Article-streaming slice: deps + types + pool singleton + pure NIP-23 parse (tested) + reducer + context + useArticleFetch + App wiring (freeze@21, per-relay status, timer)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 02-02-PLAN.md — Profile-resolution slice: parseProfile + PROFILE_RECEIVED (newest-wins) + batched single kind:0 useProfileFetch wired into provider
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 02-03-PLAN.md — Refetch/retry slice: RESET correctness (Pitfall 3) + refetch() exposed + terminal-styled error/empty retry control
+
+**UI hint**: no (reuses Phase 1 BootSequence; no new UI)
 
 ### Phase 3: Article List
 
@@ -104,6 +118,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
-| 2. Nostr Data Layer | 0/? | Not started | - |
+| 2. Nostr Data Layer | 0/3 | Not started | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
