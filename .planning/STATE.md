@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
+status: verifying
 stopped_at: Phase 1 context gathered
-last_updated: "2026-06-06T04:48:28.427Z"
+last_updated: "2026-06-06T05:17:22.083Z"
 last_activity: 2026-06-06
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 Phase: 01 (scaffold-deploy) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-06
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100% (Phase 1 complete)
 
 ## Performance Metrics
 
@@ -63,6 +63,10 @@ Recent decisions affecting current work:
 - Roadmap: nostr-tools SimplePool chosen over NDK (bundle size) and applesauce (RxJS overhead)
 - Roadmap: Deploy-first ordering — Phase 1 establishes live Pages URL so all later work is verifiable there
 - Roadmap: Data layer isolated to Phase 2 before any UI consumes it — relay risks contained to one phase
+- 01-02: Vite base corrected to /soveng/ — repo is gsovereignty/soveng (project-subpath), not gsovereignty.github.io (root-page)
+- 01-02: GitHub Actions artifact deploy (upload-pages-artifact + deploy-pages) over gh-pages npm package
+- 01-02: SPA 404 fallback via postbuild npm script (node -e copyFileSync build/index.html build/404.html)
+- 01-02: Build outDir set to build/ (gitignored) per user request to keep repo root clean
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-06T04:48:28.424Z
-Stopped at: Phase 1 context gathered
+Last session: 2026-06-06T05:17:22.079Z
+Stopped at: Completed 01-02-PLAN.md — Phase 1 scaffold-deploy complete, live at https://gsovereignty.github.io/soveng/
 Resume file: None

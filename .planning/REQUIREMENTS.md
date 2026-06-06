@@ -34,8 +34,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Presentation & Delivery
 
 - [x] **UI-01**: UI is built with React + shadcn/ui components, themed to a terminal aesthetic (monospace type, terminal palette)
-- [ ] **DEPLOY-01**: App builds to static assets via Vite with a `base` path correct for GitHub Pages
-- [ ] **DEPLOY-02**: A GitHub Actions workflow builds and publishes the site to GitHub Pages, with SPA 404 fallback
+- [x] **DEPLOY-01**: App builds to static assets via Vite with a `base` path correct for GitHub Pages
+- [x] **DEPLOY-02**: A GitHub Actions workflow builds and publishes the site to GitHub Pages, with SPA 404 fallback
 
 ## v2 Requirements
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FILT-03 | Phase 4 | Pending |
 | FILT-04 | Phase 4 | Pending |
 | UI-01 | Phase 1 | Complete |
-| DEPLOY-01 | Phase 1 | Pending |
-| DEPLOY-02 | Phase 1 | Pending |
+| DEPLOY-01 | Phase 1 | Complete |
+| DEPLOY-02 | Phase 1 | Complete |
 
 **Coverage:**
 

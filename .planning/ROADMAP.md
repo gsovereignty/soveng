@@ -17,7 +17,7 @@ Markdown reading complete the full v1 experience.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Scaffold & Deploy** - Terminal-themed Vite + React app deployed live to GitHub Pages
+- [x] **Phase 1: Scaffold & Deploy** - Terminal-themed Vite + React app deployed live to GitHub Pages (completed 2026-06-06)
 - [ ] **Phase 2: Nostr Data Layer** - Robust relay fetching, dedup, timeout, and normalized article model
 - [ ] **Phase 3: Article List** - Real articles rendered with title, author, timestamp, and error states
 - [ ] **Phase 4: Filtering & Inline Reader** - Hashtag facet sidebar with AND/OR toggle and inline Markdown expand
@@ -43,7 +43,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Vite base, SPA 404 fallback, GitHub Actions to Pages deploy
+- [x] 01-02-PLAN.md — Vite base, SPA 404 fallback, GitHub Actions to Pages deploy
 
 **UI hint**: yes
 
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold & Deploy | 1/2 | In Progress|  |
+| 1. Scaffold & Deploy | 2/2 | Complete   | 2026-06-06 |
 | 2. Nostr Data Layer | 0/? | Not started | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
