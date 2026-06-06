@@ -4,6 +4,7 @@ import type { Article, NostrStatus, Profile } from "@/types/nostr"
 import { nostrReducer, initialState } from "@/context/nostrReducer"
 import type { NostrAction, NostrState } from "@/context/nostrReducer"
 import { useArticleFetch } from "@/hooks/useArticleFetch"
+import { useProfileFetch } from "@/hooks/useProfileFetch"
 
 export type { NostrAction }
 
@@ -18,6 +19,15 @@ export function NostrProvider({ children }: { children: ReactNode }) {
 
   // Wire the streaming article fetch hook — runs for the provider lifetime, re-runs on refetch
   useArticleFetch(state.fetchKey, dispatch, state.articles.length)
+
+  // Derive unique author pubkeys from rendered articles (stable memo keyed on articles identity)
+  const pubkeys = useMemo(
+    () => [...new Set(state.articles.map(a => a.pubkey))],
+    [state.articles]
+  )
+
+  // Wire the batched profile fetch hook — opens one kind:0 subscription when articles exist (D-08, D-09)
+  useProfileFetch(pubkeys, dispatch)
 
   const value = useMemo(
     () => ({ ...state, refetch }),
