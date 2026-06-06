@@ -65,7 +65,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Article-streaming slice: deps + types + pool singleton + pure NIP-23 parse (tested) + reducer + context + useArticleFetch + App wiring (freeze@21, per-relay status, timer)
+- [x] 02-01-PLAN.md — Article-streaming slice: deps + types + pool singleton + pure NIP-23 parse (tested) + reducer + context + useArticleFetch + App wiring (freeze@21, per-relay status, timer) (completed 2026-06-06)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -118,6 +118,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
-| 2. Nostr Data Layer | 0/3 | Not started | - |
+| 2. Nostr Data Layer | 1/3 | In progress | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |

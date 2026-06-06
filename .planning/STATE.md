@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-06-06T06:35:09.584Z"
-last_activity: 2026-06-06 -- Phase 02 planning complete
+stopped_at: 02-01-PLAN.md complete
+last_updated: "2026-06-06T06:47:00.000Z"
+last_activity: 2026-06-06 -- Phase 02 Plan 01 complete (article-streaming data layer)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 2
-  percent: 25
+  total_plans: 6
+  completed_plans: 3
+  percent: 30
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Phase 01 — scaffold-deploy
+**Current focus:** Phase 02 — nostr-data-layer
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-06 -- Phase 02 planning complete
+Phase: 02 (nostr-data-layer) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 02
+Last activity: 2026-06-06 -- Phase 02 Plan 01 complete (article-streaming data layer)
 
-Progress: [██████████] 100% (Phase 1 complete)
+Progress: [████████░░] 30% (Phase 1 + 02-01 complete)
 
 ## Performance Metrics
 
@@ -67,6 +67,11 @@ Recent decisions affecting current work:
 - 01-02: GitHub Actions artifact deploy (upload-pages-artifact + deploy-pages) over gh-pages npm package
 - 01-02: SPA 404 fallback via postbuild npm script (node -e copyFileSync build/index.html build/404.html)
 - 01-02: Build outDir set to build/ (gitignored) per user request to keep repo root clean
+- 02-01: SimplePool at module scope in lib/pool.ts — never in React state (StrictMode-safe)
+- 02-01: nostr-tools subpath imports only (/pool, /kinds, /core) — root barrel forbidden for tree-shaking
+- 02-01: Freeze guard before dedup guard in ARTICLE_RECEIVED reducer (size check is outer gate)
+- 02-01: AppShell child component pattern — lives inside NostrProvider so useNostr() works
+- 02-01: PROFILE_RECEIVED is pass-through no-op for now; implemented in Plan 02
 
 ### Pending Todos
 
@@ -84,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-06T06:04:39.757Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-nostr-data-layer/02-CONTEXT.md
+Last session: 2026-06-06T06:47:00.000Z
+Stopped at: 02-01-PLAN.md complete
+Resume file: .planning/phases/02-nostr-data-layer/02-02-PLAN.md

@@ -9,12 +9,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data (Nostr fetching)
 
-- [ ] **DATA-01**: App connects to a fixed default set of relays (relay.damus.io, nos.lol, relay.nostr.band, relay.primal.net) over WebSocket
-- [ ] **DATA-02**: App fetches kind:30023 events and presents the 21 most recent (newest first)
-- [ ] **DATA-03**: App dedupes addressable events by `kind:pubkey:d` coordinate, keeping the newest `created_at`, before selecting the 21
-- [ ] **DATA-04**: App applies an EOSE/response timeout so an unresponsive relay never blocks rendering
+- [x] **DATA-01**: App connects to a fixed default set of relays (relay.damus.io, nos.lol, relay.nostr.band, relay.primal.net) over WebSocket
+- [x] **DATA-02**: App fetches kind:30023 events and presents the 21 most recent (newest first) — relaxed to first-21-to-arrive per D-02
+- [x] **DATA-03**: App dedupes addressable events by `kind:pubkey:d` coordinate — first-arriving wins per D-03
+- [x] **DATA-04**: App applies an EOSE/response timeout so an unresponsive relay never blocks rendering
 - [ ] **DATA-05**: App resolves author display data by batch-fetching kind:0 profiles for all article authors in a single subscription
-- [ ] **DATA-06**: App parses NIP-23 metadata with fallbacks for missing optional tags (`title`, `summary`, `image`, `published_at`)
+- [x] **DATA-06**: App parses NIP-23 metadata with fallbacks for missing optional tags (`title`, `summary`, `image`, `published_at`)
 
 ### Article Display
 
@@ -71,12 +71,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 2 | Pending |
-| DATA-06 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete (02-01) |
+| DATA-02 | Phase 2 | Complete (02-01) |
+| DATA-03 | Phase 2 | Complete (02-01) |
+| DATA-04 | Phase 2 | Complete (02-01) |
+| DATA-05 | Phase 2 | Pending (02-02) |
+| DATA-06 | Phase 2 | Complete (02-01) |
 | DISP-01 | Phase 3 | Pending |
 | DISP-02 | Phase 3 | Pending |
 | DISP-03 | Phase 3 | Pending |
