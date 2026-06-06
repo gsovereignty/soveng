@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold & Deploy | 2/2 | Complete   | 2026-06-06 |
+| 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 0/? | Not started | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
