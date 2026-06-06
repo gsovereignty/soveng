@@ -29,6 +29,13 @@ export function BootSequence({
   const [visibleCount, setVisibleCount] = useState(0)
   const [done, setDone] = useState(false)
 
+  // Reset sequence whenever the lines array changes identity
+  useEffect(() => {
+    setVisibleCount(0)
+    setDone(false)
+  }, [lines])
+
+  // Drive the reveal timer; depends on current visibleCount, lines, and lineDelay
   useEffect(() => {
     if (visibleCount < lines.length) {
       const timer = setTimeout(() => {
@@ -40,7 +47,7 @@ export function BootSequence({
       const timer = setTimeout(() => setDone(true), 400)
       return () => clearTimeout(timer)
     }
-  }, [visibleCount, lines.length, lineDelay])
+  }, [visibleCount, lines, lineDelay])
 
   return (
     <Card
@@ -52,7 +59,7 @@ export function BootSequence({
       <CardContent className="p-6 font-mono text-sm leading-relaxed">
         {lines.slice(0, visibleCount).map((line, i) => (
           <div
-            key={i}
+            key={`${i}-${line}`}
             className="line-reveal crt-glow text-terminal-green whitespace-pre"
             style={{ animationDelay: "0ms" }}
           >
