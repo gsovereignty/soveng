@@ -20,12 +20,22 @@ build with correct `base`), **DEPLOY-02** (Actions → Pages workflow with SPA 4
 ## Implementation Decisions
 
 ### Hosting & Base Path (DEPLOY-01)
-- **D-01:** Hosted as a **user/org root page** — repository named `<username>.github.io`,
-  served at `https://<username>.github.io/`. Therefore Vite **`base: '/'`** (root), NOT a
-  `/<repo>/` subpath. No subpath asset-rewriting needed.
-- **D-02:** No git remote exists yet — the repo must be created as `<username>.github.io`
-  for the root-page hosting model to apply. (Username TBD by user at repo-creation time;
-  does not affect `base`, which is `/` regardless.)
+- **D-01 (CORRECTED):** Hosted as a **project subpath page** — repository is `gsovereignty/soveng`,
+  served at `https://gsovereignty.github.io/soveng/`. Therefore Vite **`base: '/soveng/'`** (project
+  subpath), NOT `'/'`. Built asset URLs become `/soveng/assets/...`.
+  _Original assumption (base '/') was incorrect and caused PITFALLS #5 — asset 404s on the live URL._
+- **D-02 (CORRECTED):** Repository is `gsovereignty/soveng` — a standard **project repo**, NOT a
+  `username.github.io` root-page repo. GitHub Pages serves it at `https://gsovereignty.github.io/soveng/`.
+  _Original assumption (username.github.io root-page model) was incorrect — corrected after user
+  clarified the actual repo name and live URL during 01-02 execution._
+
+> **DEVIATION NOTE (01-02):** Plans 01-02 Task 1 and 2 were initially committed with `base: '/'`
+> based on the incorrect assumption that the repo was a root-page (`username.github.io`) type.
+> The user confirmed the actual repo is `gsovereignty/soveng` and the live URL is
+> `https://gsovereignty.github.io/soveng/` (project-subpath model). `vite.config.ts` was updated
+> to `base: '/soveng/'` after the Task 3 checkpoint. The deploy.yml needs no change — it uploads
+> the `dist` artifact regardless of base; GitHub Pages handles the subpath routing automatically.
+> This corrects the exact PITFALLS #5 scenario the plan was designed to prevent.
 
 ### Deploy Pipeline (DEPLOY-02)
 - **D-03:** GitHub **Actions → Pages** (artifact deploy), not the `gh-pages` npm package —
@@ -131,7 +141,7 @@ No additional user-supplied external specs/ADRs were referenced during discussio
 - **CRT-effect toggle / reduced-motion handling** — full CRT immersion vs readability; revisit
   for the article body in **Phase 4** (inline reader). Consider `prefers-reduced-motion`.
 - **Light/alternate theme toggle** — not requested; green phosphor is the single v1 theme.
-- **Custom domain** — explicitly not chosen (root-page model selected). Possible future.
+- **Custom domain** — not chosen. Project is served at `gsovereignty.github.io/soveng/` (project-subpath model, D-02 corrected). Custom domain is a possible future addition.
 
 None of the above expand Phase 1 scope.
 
