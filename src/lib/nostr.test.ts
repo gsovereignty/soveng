@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { articleCoordinate, parseArticle, classifyRelayClose } from "@/lib/nostr"
+import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile } from "@/lib/nostr"
 import type { Event } from "nostr-tools/core"
 
 // Minimal hand-built Event fixture factory
@@ -68,6 +68,55 @@ describe("parseArticle", () => {
     // Empty t value is dropped
     expect(article.hashtags).not.toContain("")
     expect(article.hashtags).toHaveLength(2)
+  })
+})
+
+describe("parseProfile", () => {
+  it("returns displayName and picture from valid JSON content with display_name", () => {
+    const event = makeEvent({
+      kind: 0,
+      content: JSON.stringify({ display_name: "Alice", picture: "https://x/a.png" }),
+    })
+    const profile = parseProfile(event)
+    expect(profile.displayName).toBe("Alice")
+    expect(profile.picture).toBe("https://x/a.png")
+    expect(profile.pubkey).toBe("dummy-pubkey-00000000000000000000000000000000000000000000000000000000")
+    expect(profile.createdAt).toBe(1700000000)
+  })
+
+  it("does NOT throw on malformed JSON content and returns undefined fallbacks", () => {
+    const event = makeEvent({ kind: 0, content: "{not json" })
+    let profile: ReturnType<typeof parseProfile> | undefined
+    expect(() => {
+      profile = parseProfile(event)
+    }).not.toThrow()
+    expect(profile).toBeDefined()
+    expect(profile!.displayName).toBeUndefined()
+    expect(profile!.picture).toBeUndefined()
+  })
+
+  it("display_name wins over displayName wins over name (priority order)", () => {
+    // display_name present — wins
+    const e1 = makeEvent({ kind: 0, content: JSON.stringify({ display_name: "DisplayName", displayName: "CamelCase", name: "PlainName" }) })
+    expect(parseProfile(e1).displayName).toBe("DisplayName")
+
+    // display_name absent — displayName wins
+    const e2 = makeEvent({ kind: 0, content: JSON.stringify({ displayName: "CamelCase", name: "PlainName" }) })
+    expect(parseProfile(e2).displayName).toBe("CamelCase")
+
+    // only name present
+    const e3 = makeEvent({ kind: 0, content: JSON.stringify({ name: "PlainName" }) })
+    expect(parseProfile(e3).displayName).toBe("PlainName")
+  })
+
+  it("whitespace-only display_name falls through to next priority", () => {
+    const event = makeEvent({ kind: 0, content: JSON.stringify({ display_name: "   ", name: "Fallback" }) })
+    expect(parseProfile(event).displayName).toBe("Fallback")
+  })
+
+  it("all absent display fields produce undefined displayName", () => {
+    const event = makeEvent({ kind: 0, content: JSON.stringify({ about: "no name fields" }) })
+    expect(parseProfile(event).displayName).toBeUndefined()
   })
 })
 
