@@ -6,6 +6,9 @@ import { defineConfig } from "vite"
 export default defineConfig({
   base: "/soveng/",
   plugins: [react(), tailwindcss()],
+  build: {
+    outDir: "build",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

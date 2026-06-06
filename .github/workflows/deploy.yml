@@ -39,13 +39,13 @@ jobs:
 
       - name: Build
         # npm run build triggers the postbuild script which copies
-        # dist/index.html to dist/404.html (SPA fallback, D-04)
+        # build/index.html to build/404.html (SPA fallback, D-04)
         run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: build
 
       - name: Deploy to GitHub Pages
         id: deploy
