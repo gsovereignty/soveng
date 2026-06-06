@@ -4,7 +4,7 @@ import { useNostr } from "@/context/NostrContext"
 
 // AppShell reads context — must live inside NostrProvider
 function AppShell() {
-  const { status, articles } = useNostr()
+  const { status, articles, refetch } = useNostr()
 
   return (
     <div className="crt-scanlines crt-flicker min-h-screen bg-terminal-bg flex flex-col items-center justify-center p-8">
@@ -16,6 +16,30 @@ function AppShell() {
       <main className="w-full max-w-2xl">
         {status === "streaming" ? (
           <BootSequence />
+        ) : status === "error" ? (
+          <div className="font-mono text-sm">
+            <p className="text-terminal-amber mb-4">
+              [ERR] relay connection failed — all relays returned errors
+            </p>
+            <button
+              onClick={refetch}
+              className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+            >
+              &gt; retry connection
+            </button>
+          </div>
+        ) : status === "empty" ? (
+          <div className="font-mono text-sm">
+            <p className="text-terminal-muted mb-4">
+              [EMPTY] relays responded but no articles found
+            </p>
+            <button
+              onClick={refetch}
+              className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+            >
+              &gt; retry fetch
+            </button>
+          </div>
         ) : (
           <pre className="text-terminal-muted text-xs font-mono">
             {`status: ${status}\narticles: ${articles.length}`}
