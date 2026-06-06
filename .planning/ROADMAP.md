@@ -69,7 +69,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 02-02-PLAN.md — Profile-resolution slice: parseProfile + PROFILE_RECEIVED (newest-wins) + batched single kind:0 useProfileFetch wired into provider
+- [x] 02-02-PLAN.md — Profile-resolution slice: parseProfile + PROFILE_RECEIVED (newest-wins) + batched single kind:0 useProfileFetch wired into provider (completed 2026-06-06)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -118,6 +118,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
-| 2. Nostr Data Layer | 1/3 | In progress | - |
+| 2. Nostr Data Layer | 2/3 | In progress | - |
 | 3. Article List | 0/? | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
