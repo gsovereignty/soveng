@@ -141,4 +141,55 @@ describe("nostrReducer — RESET", () => {
     expect(reset.status).toBe("streaming")
     expect(reset.fetchKey).toBe(state.fetchKey + 1)
   })
+
+  it("full-reset: clears articles, seenCoords, profiles and resets status to streaming with fetchKey+1", () => {
+    // Build state with several articles + a profile
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-a", "pubkey-1") })
+    state = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-b", "pubkey-2") })
+    state = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-c", "pubkey-3") })
+    state = nostrReducer(state, {
+      type: "PROFILE_RECEIVED",
+      event: makeProfileEvent("pubkey-1", { display_name: "Alice" }),
+    })
+    state = nostrReducer(state, { type: "SET_STATUS", status: "done" })
+
+    // Pre-reset assertions
+    expect(state.articles).toHaveLength(3)
+    expect(state.seenCoords.size).toBe(3)
+    expect(state.profiles.size).toBe(1)
+    expect(state.status).toBe("done")
+    const prevFetchKey = state.fetchKey
+
+    // Dispatch RESET
+    const reset = nostrReducer(state, { type: "RESET" })
+
+    // All streaming state must be fully cleared
+    expect(reset.articles).toHaveLength(0)
+    expect(reset.seenCoords.size).toBe(0)
+    expect(reset.profiles.size).toBe(0)
+    expect(reset.status).toBe("streaming")
+    expect(reset.fetchKey).toBe(prevFetchKey + 1)
+  })
+
+  it("Pitfall 3 regression: a coordinate that was in seenCoords before RESET is accepted after RESET", () => {
+    // First round: article with slug-x is received and deduped
+    const event = makeEvent("slug-x", "pubkey-pitfall3")
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event })
+    expect(state.articles).toHaveLength(1)
+    expect(state.seenCoords.has("30023:pubkey-pitfall3:slug-x")).toBe(true)
+
+    // Second dispatch of same event is deduped (no-op)
+    const deduped = nostrReducer(state, { type: "ARTICLE_RECEIVED", event })
+    expect(deduped).toBe(state) // same reference — dedup guard
+    expect(deduped.articles).toHaveLength(1)
+
+    // RESET clears seenCoords
+    const reset = nostrReducer(state, { type: "RESET" })
+    expect(reset.seenCoords.has("30023:pubkey-pitfall3:slug-x")).toBe(false)
+
+    // After RESET, the previously-seen coordinate is accepted again (Pitfall 3 closed)
+    const reAdded = nostrReducer(reset, { type: "ARTICLE_RECEIVED", event })
+    expect(reAdded.articles).toHaveLength(1) // re-added, not deduped
+    expect(reAdded.seenCoords.has("30023:pubkey-pitfall3:slug-x")).toBe(true)
+  })
 })
