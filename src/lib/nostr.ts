@@ -46,13 +46,19 @@ export function parseProfile(event: Event): Profile {
     // Malformed JSON — fall through to empty object; all fields get undefined fallbacks
   }
 
-  const displayName =
-    (data.display_name as string | undefined)?.trim() ||
-    (data.displayName as string | undefined)?.trim() ||
-    (data.name as string | undefined)?.trim() ||
-    undefined
+  // Untrusted relay input: a profile field may be any JSON type (number, array,
+  // object). Optional chaining only guards null/undefined — calling .trim() on a
+  // non-string non-nullish value throws a TypeError, which would propagate out of
+  // the synchronous reducer dispatch and crash the React update. Guard with typeof.
+  const asTrimmedString = (v: unknown): string | undefined =>
+    typeof v === "string" ? v.trim() || undefined : undefined
 
-  const picture = (data.picture as string | undefined)?.trim() || undefined
+  const displayName =
+    asTrimmedString(data.display_name) ??
+    asTrimmedString(data.displayName) ??
+    asTrimmedString(data.name)
+
+  const picture = asTrimmedString(data.picture)
 
   return {
     pubkey: event.pubkey,

@@ -118,6 +118,36 @@ describe("parseProfile", () => {
     const event = makeEvent({ kind: 0, content: JSON.stringify({ about: "no name fields" }) })
     expect(parseProfile(event).displayName).toBeUndefined()
   })
+
+  it("does NOT throw on non-string fields (number name, array picture) and returns undefined fallbacks (CR-02)", () => {
+    const event = makeEvent({ kind: 0, content: JSON.stringify({ name: 123, picture: ["x"] }) })
+    let profile: ReturnType<typeof parseProfile> | undefined
+    expect(() => {
+      profile = parseProfile(event)
+    }).not.toThrow()
+    expect(profile).toBeDefined()
+    expect(profile!.displayName).toBeUndefined()
+    expect(profile!.picture).toBeUndefined()
+  })
+
+  it("skips non-string priority fields and falls through to the first valid string (CR-02)", () => {
+    // display_name is a number, displayName is an object — name (a string) wins
+    const event = makeEvent({
+      kind: 0,
+      content: JSON.stringify({ display_name: 42, displayName: { nested: true }, name: "RealName" }),
+    })
+    expect(parseProfile(event).displayName).toBe("RealName")
+  })
+
+  it("does NOT throw when JSON content is a bare non-object (e.g. a number) (CR-02)", () => {
+    const event = makeEvent({ kind: 0, content: "123" })
+    let profile: ReturnType<typeof parseProfile> | undefined
+    expect(() => {
+      profile = parseProfile(event)
+    }).not.toThrow()
+    expect(profile!.displayName).toBeUndefined()
+    expect(profile!.picture).toBeUndefined()
+  })
 })
 
 describe("classifyRelayClose", () => {
