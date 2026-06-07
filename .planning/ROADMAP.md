@@ -1,143 +1,28 @@
 # Roadmap: Soveng — Nostr Long-Form Reader
 
-## Overview
+## Milestones
 
-Four vertical MVP phases that each leave the site deployable and incrementally more
-capable: first a live Pages skeleton establishes the terminal theme and deploy pipeline;
-then the data layer delivers clean normalized Nostr articles to the browser; then the
-article list renders real content end-to-end; finally hashtag faceting and inline
-Markdown reading complete the full v1 experience.
+- ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-06-07) — see [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 ## Phases
 
-**Phase Numbering:**
+<details>
+<summary>✅ v1.0 MVP (Phases 1-4) — SHIPPED 2026-06-07</summary>
 
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+- [x] Phase 1: Scaffold & Deploy (2/2 plans) — completed 2026-06-06
+- [x] Phase 2: Nostr Data Layer (3/3 plans) — completed 2026-06-07
+- [x] Phase 3: Article List (2/2 plans) — completed 2026-06-07
+- [x] Phase 4: Filtering & Inline Reader (2/2 plans) — completed 2026-06-07
 
-Decimal phases appear between their surrounding integers in numeric order.
+Full phase details archived in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md).
 
-- [x] **Phase 1: Scaffold & Deploy** - Terminal-themed Vite + React app deployed live to GitHub Pages (completed 2026-06-06)
-- [x] **Phase 2: Nostr Data Layer** - Robust relay fetching, dedup, timeout, and normalized article model (completed 2026-06-06)
-- [x] **Phase 3: Article List** - Real articles rendered with title, author, timestamp, and error states (completed 2026-06-07)
-- [x] **Phase 4: Filtering & Inline Reader** - Hashtag facet sidebar with AND/OR toggle and inline Markdown expand (completed 2026-06-07)
-
-## Phase Details
-
-### Phase 1: Scaffold & Deploy
-
-**Goal**: A terminal-themed React + shadcn/ui app is live on GitHub Pages serving a placeholder page
-**Mode:** mvp
-**Depends on**: Nothing (first phase)
-**Requirements**: UI-01, DEPLOY-01, DEPLOY-02
-**Success Criteria** (what must be TRUE):
-
-  1. Visiting the GitHub Pages URL shows a styled placeholder page with monospace type and terminal color palette
-  2. The Vite build produces static assets with the correct `base` path — no 404s when navigating the deployed URL
-  3. A GitHub Actions push to main automatically builds and publishes the site, including a 404.html SPA fallback
-
-**Plans**: 2 plansPlans:
-**Wave 1**
-
-- [x] 01-01-PLAN.md — Scaffold Vite+React+shadcn, terminal theme, reusable boot-sequence placeholder
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 01-02-PLAN.md — Vite base, SPA 404 fallback, GitHub Actions to Pages deploy
-
-**UI hint**: yes
-
-### Phase 2: Nostr Data Layer
-
-**Goal**: The app connects to the default relay set, fetches and deduplicates kind:30023 articles, batch-resolves author profiles, and exposes a clean normalized article model with safe fallbacks
-**Mode:** mvp
-**Depends on**: Phase 1
-**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06
-**Success Criteria** (what must be TRUE):
-
-  1. The app connects to all four default relays (damus.io, nos.lol, nostr.band, primal.net) on load
-  2. Up to 21 kind:30023 articles are collected, deduped by `kind:pubkey:d` coordinate (newest wins), and sorted newest-first — with no stale or duplicate entries appearing in the list
-  3. An EOSE/response timeout fires so that a hanging or unresponsive relay never blocks the page from rendering
-  4. Author display data (name, picture) is resolved via a single batch kind:0 subscription covering all 21 pubkeys
-  5. Articles with missing optional tags (`title`, `summary`, `image`, `published_at`) still produce a valid article record — no card crashes or blank fields due to absent metadata
-
-**Plans**: 3 plans
-
-**Wave 1**
-
-- [x] 02-01-PLAN.md — Article-streaming slice: deps + types + pool singleton + pure NIP-23 parse (tested) + reducer + context + useArticleFetch + App wiring (freeze@21, per-relay status, timer) (completed 2026-06-06)
-
-**Wave 2** *(blocked on Wave 1)*
-
-- [x] 02-02-PLAN.md — Profile-resolution slice: parseProfile + PROFILE_RECEIVED (newest-wins) + batched single kind:0 useProfileFetch wired into provider (completed 2026-06-06)
-
-**Wave 3** *(blocked on Wave 2)*
-
-- [x] 02-03-PLAN.md — Refetch/retry slice: RESET correctness (Pitfall 3) + refetch() exposed + terminal-styled error/empty retry control
-
-**UI hint**: no (reuses Phase 1 BootSequence; no new UI)
-
-### Phase 3: Article List
-
-**Goal**: Real Nostr articles render end-to-end on the deployed Pages URL with title, author identity, timestamp, and correct loading/error/empty states
-**Mode:** mvp
-**Depends on**: Phase 2
-**Requirements**: DISP-01, DISP-02, DISP-03, DISP-05
-**Success Criteria** (what must be TRUE):
-
-  1. Each article card shows its title (or a sensible fallback) along with the author's display name and picture
-  2. Each article card shows a human-readable timestamp derived from `published_at` when present, else `created_at`
-  3. A loading state is visible while the relay fetch is in progress
-  4. A relay-error state (distinct from an empty-results state) is shown when all relays fail or time out
-
-**Plans**: 2 plans
-
-**Wave 1**
-
-- [x] 03-01-PLAN.md — Card primitives slice: tested formatTimestamp (D-07/D-08), shadcn Avatar (D-06), ArticleCard with title fallback + green-tint avatar/monogram + timestamp (DISP-01/02/03)
-
-**Wave 2** *(blocked on Wave 1)*
-
-- [x] 03-02-PLAN.md — Integration slice: ArticleList streaming status line (D-02) + arrival-order card mapping (D-03), wired into App.tsx with boot-then-stream (D-01), preserving error/empty/retry (DISP-05)
-
-**UI hint**: yes
-
-### Phase 4: Filtering & Inline Reader
-
-**Goal**: Users can narrow the article list by hashtag with AND/OR logic and read any article's full Markdown content inline without leaving the page
-**Mode:** mvp
-**Depends on**: Phase 3
-**Requirements**: FILT-01, FILT-02, FILT-03, FILT-04, DISP-04
-**Success Criteria** (what must be TRUE):
-
-  1. A sidebar facet panel lists all hashtags derived from the fetched 21 articles' `t` tags, each showing a count of matching articles
-  2. Checking one or more hashtag checkboxes filters the article list in real time
-  3. The AND/OR toggle ("Match ALL" / "Match ANY") changes how selected hashtags combine — default is OR (Match ANY)
-  4. An empty-filter state (no articles match the selected tags) is shown when the filter excludes all articles — distinct from the relay-error state
-  5. Clicking an article expands its full body as sanitized Markdown rendered inline in the list; clicking again collapses it
-
-> **Layout note (D-01):** the facet panel ships as a sticky **top filter bar**, not a left/right sidebar — a presentation choice that still satisfies FILT-01/02 (facet list + counts). Flag for `/gsd-transition` as a presentation delta, not a scope change.
-
-**Plans**: 2 plans
-
-**Wave 1**
-
-- [x] 04-01-PLAN.md — Hashtag faceting slice: tested facets.ts (buildFacets count-rank D-06 + computeDynamicCounts D-08) + sticky FilterBar (Checkbox tags, show-more D-07, Match ANY/ALL ToggleGroup D-09) + App.tsx filter state/useMemo chain + distinct empty-filter state D-11 (FILT-01/02/03/04)
-
-**Wave 2** *(blocked on Wave 1)*
-
-- [x] 04-02-PLAN.md — Inline reader slice: install react-markdown stack + shadcn Accordion + ArticleBody sanitized renderer (no rehype-raw, links new-tab D-05, full CRT D-04) + ArticleCard/ArticleList refactor to controlled single-open Accordion with D-10 filter-clears-open (DISP-04, D-03)
-
-**UI hint**: yes
+</details>
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
-| 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
-| 3. Article List | 2/2 | Complete    | 2026-06-07 |
-| 4. Filtering & Inline Reader | 2/2 | Complete    | 2026-06-07 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Scaffold & Deploy | v1.0 | 2/2 | Complete | 2026-06-06 |
+| 2. Nostr Data Layer | v1.0 | 3/3 | Complete | 2026-06-07 |
+| 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
+| 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |

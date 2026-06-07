@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-06-07T10:25:51.483Z"
+milestone_name: MVP
+status: shipped
+stopped_at: v1.0 milestone complete
+last_updated: "2026-06-07T15:05:36.000Z"
 last_activity: 2026-06-07
 progress:
   total_phases: 4
@@ -18,19 +18,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-05)
+See: .planning/PROJECT.md (updated 2026-06-07)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Phase 04 — filtering-inline-reader
+**Current focus:** v1.0 shipped — planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 04
-Plan: Not started
-Status: Executing Phase 04
-Last activity: 2026-06-07 - Completed quick task 260607-vqt: Don't stop at 21 events. Sort by number of replies.
+Milestone: v1.0 MVP — ✅ SHIPPED 2026-06-07
+Phase: all complete (1-4)
+Status: Milestone complete; awaiting next milestone
+Last activity: 2026-06-07 - Archived v1.0 milestone (ROADMAP + REQUIREMENTS), tagged v1.0
 
-Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
+Progress: [██████████] 100% (4/4 phases, 9/9 plans complete)
 
 ## Performance Metrics
 
@@ -96,7 +96,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 2 planning flag: relay EOSE timeout tuning and batch kind:0 query limits need validation against live relays (see research SUMMARY.md)
+- None open. (Resolved in v1.0: relay EOSE timeout tuning and batch kind:0 query limits — validated against live relays during Phase 2.)
+- Carry-forward note: DATA-02 requirement/constraint text ("21 most recent, newest first") diverges from shipped behavior (uncapped, reply-count sort via 260607-vqt) — reconcile in next milestone.
 
 ### Quick Tasks Completed
 
