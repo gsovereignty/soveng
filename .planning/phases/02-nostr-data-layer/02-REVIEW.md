@@ -15,11 +15,16 @@ files_reviewed_list:
   - src/hooks/useProfileFetch.ts
   - src/App.tsx
 findings:
-  critical: 3
+  critical: 0
   warning: 5
   info: 3
-  total: 11
+  total: 8
 status: issues_found
+resolved:
+  - CR-01 (fix 16d042a/91c0726): live count ref + resolveArticleStatus helper — partial results resolve to done
+  - CR-02 (fix bf909bf): parseProfile type-guards non-string fields, never throws on hostile input
+  - CR-03 (fix 91c0726): backstop dispatches terminal status, double-dispatch guarded by resolved flag
+resolution_note: All 3 BLOCKERs fixed and re-reviewed RESOLVED (no new blocker defects). 5 warnings + 3 info remain tracked for a later pass.
 ---
 
 # Phase 02: Code Review Report
