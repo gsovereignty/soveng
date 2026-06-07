@@ -5,6 +5,7 @@ import { nostrReducer, initialState } from "@/context/nostrReducer"
 import type { NostrAction, NostrState } from "@/context/nostrReducer"
 import { useArticleFetch } from "@/hooks/useArticleFetch"
 import { useProfileFetch } from "@/hooks/useProfileFetch"
+import { useReplyFetch } from "@/hooks/useReplyFetch"
 
 export type { NostrAction }
 
@@ -28,6 +29,15 @@ export function NostrProvider({ children }: { children: ReactNode }) {
 
   // Wire the batched profile fetch hook — opens one kind:0 subscription when articles exist (D-08, D-09)
   useProfileFetch(pubkeys, dispatch)
+
+  // Derive unique article coordinates for the reply count subscription
+  const coordinates = useMemo(
+    () => [...new Set(state.articles.map(a => a.coordinate))],
+    [state.articles]
+  )
+
+  // Wire the batched reply fetch hook — opens one #a subscription when articles exist
+  useReplyFetch(coordinates, dispatch)
 
   const value = useMemo(
     () => ({ ...state, refetch }),

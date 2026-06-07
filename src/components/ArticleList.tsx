@@ -29,7 +29,7 @@ export function ArticleList({ articles, profiles, status }: ArticleListProps) {
       <header className="mb-4">
         {status === "streaming" ? (
           <p className="crt-glow text-terminal-green-dim text-xs tracking-widest uppercase">
-            &gt; streaming&#x2026; {articles.length}/21 received
+            &gt; streaming&#x2026; {articles.length} received
           </p>
         ) : (
           <p className="crt-glow text-terminal-green-dim text-xs tracking-widest uppercase">

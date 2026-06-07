@@ -6,17 +6,12 @@ import { classifyRelayClose, resolveArticleStatus } from "@/lib/nostr"
 import type { NostrAction } from "@/context/NostrContext"
 import type { RelayOutcome } from "@/types/nostr"
 
-type SubCloser = { close: (reason?: string) => void }
-
 export function useArticleFetch(
   fetchKey: number,
   dispatch: Dispatch<NostrAction>,
   articleCount: number
 ) {
-  // Hold the subscription handle in a ref so the freeze watcher effect can close it
-  const subRef = useRef<SubCloser | null>(null)
-
-  // CR-01: track the LIVE article count in a ref. Effect 1 only depends on
+  // CR-01: track the LIVE article count in a ref. Effect only depends on
   // [fetchKey], so any value captured in its closure (like the articleCount
   // parameter) is frozen at effect-creation time, when no articles have arrived
   // yet (count === 0). Articles arrive asynchronously via dispatch and update
@@ -25,7 +20,7 @@ export function useArticleFetch(
   const countRef = useRef(articleCount)
   countRef.current = articleCount
 
-  // Effect 1: open subscription, track per-relay outcomes, set up backstop timer
+  // Effect: open subscription, track per-relay outcomes, set up backstop timer
   useEffect(() => {
     const relayOutcomes = new Map<string, RelayOutcome>()
     RELAYS.forEach(url => relayOutcomes.set(url, "pending"))
@@ -76,8 +71,6 @@ export function useArticleFetch(
       }
     )
 
-    subRef.current = sub
-
     // CR-03 / D-04: 9000ms backstop. In nostr-tools, onclose only fires once
     // EVERY relay has reported a close — a single hung relay means onclose never
     // fires and SubCloser.close() does not synthesize one, so without an explicit
@@ -98,17 +91,6 @@ export function useArticleFetch(
       // Mark resolved so a late onclose triggered by this cleanup-close does not
       // dispatch a status into an unmounted/re-keyed effect.
       resolved = true
-      subRef.current = null
     }
   }, [fetchKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Effect 2: freeze watcher — close subscription proactively once 21 articles accumulated (D-02, D-05)
-  // Only fires from this watcher or cleanup — NEVER synchronously during setup (Pitfall 5)
-  useEffect(() => {
-    if (articleCount >= 21 && subRef.current) {
-      subRef.current.close("freeze-at-21")
-      subRef.current = null
-      dispatch({ type: "SET_STATUS", status: "done" })
-    }
-  }, [articleCount, dispatch])
 }
