@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 4 context gathered
-last_updated: "2026-06-07T09:44:12.755Z"
-last_activity: 2026-06-07 -- Phase 04 planning complete
+last_updated: "2026-06-07T10:00:34.952Z"
+last_activity: 2026-06-07 -- Phase 04 execution started
 progress:
   total_phases: 4
   completed_phases: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Phase 03 — article-list
+**Current focus:** Phase 04 — filtering-inline-reader
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-07 -- Phase 04 planning complete
+Phase: 04 (filtering-inline-reader) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 04
+Last activity: 2026-06-07 -- Phase 04 execution started
 
 Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
 

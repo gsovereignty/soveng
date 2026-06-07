@@ -122,7 +122,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Hashtag faceting slice: tested facets.ts (buildFacets count-rank D-06 + computeDynamicCounts D-08) + sticky FilterBar (Checkbox tags, show-more D-07, Match ANY/ALL ToggleGroup D-09) + App.tsx filter state/useMemo chain + distinct empty-filter state D-11 (FILT-01/02/03/04)
+- [x] 04-01-PLAN.md — Hashtag faceting slice: tested facets.ts (buildFacets count-rank D-06 + computeDynamicCounts D-08) + sticky FilterBar (Checkbox tags, show-more D-07, Match ANY/ALL ToggleGroup D-09) + App.tsx filter state/useMemo chain + distinct empty-filter state D-11 (FILT-01/02/03/04)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -140,4 +140,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
 | 3. Article List | 2/2 | Complete    | 2026-06-07 |
-| 4. Filtering & Inline Reader | 0/2 | Not started | - |
+| 4. Filtering & Inline Reader | 1/2 | In Progress|  |
