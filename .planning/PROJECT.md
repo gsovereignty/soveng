@@ -15,6 +15,16 @@ It's a static site, built with Vite and deployable to GitHub Pages.
 Discover and read recent Nostr long-form articles, filtered by hashtag — with zero
 backend, served entirely as a static GitHub Pages site.
 
+## Current Milestone: v1.1 Local ML Content Filtering
+
+**Goal:** Automatically hide spam and non-English articles from the reading list using in-browser ML — keeping the zero-backend, works-for-every-visitor property.
+
+**Target features:**
+- In-browser spam classification via transformers.js (small ONNX model, WASM/WebGPU)
+- Lightweight English-language detection via a small library (e.g. franc) — no model download
+- Filtered articles (spam OR non-English) hidden entirely from the list
+- Filtering on by default; classification runs after fetch as articles render, fail-open on error
+
 ## Requirements
 
 ### Validated
