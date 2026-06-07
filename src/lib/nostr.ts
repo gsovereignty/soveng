@@ -68,6 +68,26 @@ export function parseProfile(event: Event): Profile {
   }
 }
 
+/**
+ * Pure terminal-status resolution for the article stream.
+ *
+ * CR-01: status is derived from the LIVE article count, never a stale closure
+ * snapshot. CR-03: callable from both onclose and the backstop timer so a hung
+ * relay still resolves the stream.
+ *
+ *  - any articles received      -> "done"
+ *  - no articles, every relay errored -> "error"
+ *  - no articles otherwise (timeout/empty) -> "empty"
+ */
+export function resolveArticleStatus(
+  articleCount: number,
+  allError: boolean
+): "done" | "empty" | "error" {
+  if (articleCount > 0) return "done"
+  if (allError) return "error"
+  return "empty"
+}
+
 export function classifyRelayClose(reason: string): "clean" | "error" {
   if (
     reason.includes("eose") ||

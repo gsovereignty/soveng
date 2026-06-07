@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile } from "@/lib/nostr"
+import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile, resolveArticleStatus } from "@/lib/nostr"
 import type { Event } from "nostr-tools/core"
 
 // Minimal hand-built Event fixture factory
@@ -147,6 +147,28 @@ describe("parseProfile", () => {
     }).not.toThrow()
     expect(profile!.displayName).toBeUndefined()
     expect(profile!.picture).toBeUndefined()
+  })
+})
+
+describe("resolveArticleStatus", () => {
+  it("resolves to 'done' when any articles were received (CR-01: live count, not stale 0)", () => {
+    // The core CR-01 scenario: a PARTIAL result (e.g. 15 articles, < 21 freeze
+    // cap) must resolve to 'done', not 'empty'. With the old stale-closure bug
+    // the count read as 0 and this misresolved to 'empty'/'error'.
+    expect(resolveArticleStatus(15, false)).toBe("done")
+    expect(resolveArticleStatus(1, false)).toBe("done")
+    // done wins even if relays all errored, as long as some articles arrived
+    expect(resolveArticleStatus(15, true)).toBe("done")
+  })
+
+  it("resolves to 'error' only when no articles AND all relays errored", () => {
+    expect(resolveArticleStatus(0, true)).toBe("error")
+  })
+
+  it("resolves to 'empty' when no articles and relays did not all error (CR-03 backstop/timeout path)", () => {
+    // The backstop timer passes allError=false; with zero articles this must
+    // still produce a terminal status so the UI never stays stuck on 'streaming'.
+    expect(resolveArticleStatus(0, false)).toBe("empty")
   })
 })
 
