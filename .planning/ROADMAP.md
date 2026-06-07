@@ -116,7 +116,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. An empty-filter state (no articles match the selected tags) is shown when the filter excludes all articles — distinct from the relay-error state
   5. Clicking an article expands its full body as sanitized Markdown rendered inline in the list; clicking again collapses it
 
-**Plans**: TBD
+> **Layout note (D-01):** the facet panel ships as a sticky **top filter bar**, not a left/right sidebar — a presentation choice that still satisfies FILT-01/02 (facet list + counts). Flag for `/gsd-transition` as a presentation delta, not a scope change.
+
+**Plans**: 2 plans
+
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Hashtag faceting slice: tested facets.ts (buildFacets count-rank D-06 + computeDynamicCounts D-08) + sticky FilterBar (Checkbox tags, show-more D-07, Match ANY/ALL ToggleGroup D-09) + App.tsx filter state/useMemo chain + distinct empty-filter state D-11 (FILT-01/02/03/04)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-02-PLAN.md — Inline reader slice: install react-markdown stack + shadcn Accordion + ArticleBody sanitized renderer (no rehype-raw, links new-tab D-05, full CRT D-04) + ArticleCard/ArticleList refactor to controlled single-open Accordion with D-10 filter-clears-open (DISP-04, D-03)
+
 **UI hint**: yes
 
 ## Progress
@@ -129,4 +140,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
 | 3. Article List | 2/2 | Complete    | 2026-06-07 |
-| 4. Filtering & Inline Reader | 0/? | Not started | - |
+| 4. Filtering & Inline Reader | 0/2 | Not started | - |
