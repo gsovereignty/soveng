@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Scaffold & Deploy** - Terminal-themed Vite + React app deployed live to GitHub Pages (completed 2026-06-06)
 - [x] **Phase 2: Nostr Data Layer** - Robust relay fetching, dedup, timeout, and normalized article model (completed 2026-06-06)
 - [x] **Phase 3: Article List** - Real articles rendered with title, author, timestamp, and error states (completed 2026-06-07)
-- [ ] **Phase 4: Filtering & Inline Reader** - Hashtag facet sidebar with AND/OR toggle and inline Markdown expand
+- [x] **Phase 4: Filtering & Inline Reader** - Hashtag facet sidebar with AND/OR toggle and inline Markdown expand (completed 2026-06-07)
 
 ## Phase Details
 
@@ -126,7 +126,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 04-02-PLAN.md — Inline reader slice: install react-markdown stack + shadcn Accordion + ArticleBody sanitized renderer (no rehype-raw, links new-tab D-05, full CRT D-04) + ArticleCard/ArticleList refactor to controlled single-open Accordion with D-10 filter-clears-open (DISP-04, D-03)
+- [x] 04-02-PLAN.md — Inline reader slice: install react-markdown stack + shadcn Accordion + ArticleBody sanitized renderer (no rehype-raw, links new-tab D-05, full CRT D-04) + ArticleCard/ArticleList refactor to controlled single-open Accordion with D-10 filter-clears-open (DISP-04, D-03)
 
 **UI hint**: yes
 
@@ -140,4 +140,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
 | 3. Article List | 2/2 | Complete    | 2026-06-07 |
-| 4. Filtering & Inline Reader | 1/2 | In Progress|  |
+| 4. Filtering & Inline Reader | 2/2 | Complete   | 2026-06-07 |
