@@ -21,15 +21,15 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DISP-01**: Each article shows its title (with a sensible fallback when absent)
 - [x] **DISP-02**: Each article shows the author's name (display_name → name → truncated npub fallback) and picture
 - [x] **DISP-03**: Each article shows a human-readable timestamp (`published_at` when present, else `created_at`)
-- [ ] **DISP-04**: Clicking an article expands its full body rendered as sanitized Markdown inline in the list
+- [x] **DISP-04**: Clicking an article expands its full body rendered as sanitized Markdown inline in the list
 - [x] **DISP-05**: App shows distinct loading, empty-filter, and relay-error states (error ≠ "no matches")
 
 ### Hashtag Filtering
 
-- [ ] **FILT-01**: App derives a hashtag facet list from the `t` tags of the fetched 21 articles, lowercased/normalized
-- [ ] **FILT-02**: Each hashtag facet shows a count of how many of the fetched articles carry it
-- [ ] **FILT-03**: User can select/deselect hashtags via checkboxes to filter the article list
-- [ ] **FILT-04**: User can toggle between AND ("Match ALL") and OR ("Match ANY") combination of selected hashtags
+- [x] **FILT-01**: App derives a hashtag facet list from the `t` tags of the fetched 21 articles, lowercased/normalized
+- [x] **FILT-02**: Each hashtag facet shows a count of how many of the fetched articles carry it
+- [x] **FILT-03**: User can select/deselect hashtags via checkboxes to filter the article list
+- [x] **FILT-04**: User can toggle between AND ("Match ALL") and OR ("Match ANY") combination of selected hashtags
 
 ### Presentation & Delivery
 
@@ -80,12 +80,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISP-01 | Phase 3 | Complete |
 | DISP-02 | Phase 3 | Complete |
 | DISP-03 | Phase 3 | Complete |
-| DISP-04 | Phase 4 | Pending |
+| DISP-04 | Phase 4 | Complete |
 | DISP-05 | Phase 3 | Complete |
-| FILT-01 | Phase 4 | Pending |
-| FILT-02 | Phase 4 | Pending |
-| FILT-03 | Phase 4 | Pending |
-| FILT-04 | Phase 4 | Pending |
+| FILT-01 | Phase 4 | Complete |
+| FILT-02 | Phase 4 | Complete |
+| FILT-03 | Phase 4 | Complete |
+| FILT-04 | Phase 4 | Complete |
 | UI-01 | Phase 1 | Complete |
 | DEPLOY-01 | Phase 1 | Complete |
 | DEPLOY-02 | Phase 1 | Complete |
