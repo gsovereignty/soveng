@@ -451,3 +451,526 @@ Build order follows the dependency graph bottom-up so GitHub Pages can serve a r
 ---
 *Architecture research for: Nostr long-form article reader SPA (client-only)*
 *Researched: 2026-06-05*
+
+---
+
+# v1.1 Architecture: In-Browser ML Content Filtering Integration
+
+**Domain:** Adding spam classification + language detection to an existing shipped SPA
+**Researched:** 2026-06-07
+**Confidence:** HIGH (grounded in actual codebase inspection + verified library documentation)
+
+## Context: The Existing v1.0 Pipeline
+
+v1.0 is shipped at https://gsovereignty.github.io/soveng/. The actual pipeline (from inspecting the codebase):
+
+```
+Relay WebSocket events
+    ↓
+useArticleFetch (pool.subscribeMany, EOSE/9s backstop)   [hooks/useArticleFetch.ts]
+    ↓ dispatch ARTICLE_RECEIVED
+nostrReducer (dedup-by-coordinate, appends to articles[])  [context/nostrReducer.ts]
+    ↓ state.articles (grows as events stream in)
+NostrContext consumers
+    ↓ useMemo: sortArticlesByReplies
+sortedArticles                                              [App.tsx line 20-22]
+    ↓ useMemo (two independent)
+buildFacets(sortedArticles) → facets[]                    [App.tsx line 26]
+filterArticles(sortedArticles, selectedTags, matchMode)   [App.tsx line 38-41]
+    ↓
+FilterBar (facets + dynamicCounts)    ArticleList → ArticleCard[]
+```
+
+Key constraint: `lib/pool.ts` exports a module-level singleton `pool` — never in React state. This is the established pattern for infrastructure singletons in this codebase.
+
+## System Overview: v1.1 Extended Pipeline
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│  Main Thread                                                              │
+│                                                                           │
+│  Relay events → nostrReducer → state.articles[]                           │
+│                                        │                                 │
+│                      ┌─────────────────▼──────────────────────┐          │
+│                      │  useClassification(sortedArticles)     │          │
+│                      │                                        │          │
+│                      │  1. franc-min (sync, per new article): │          │
+│                      │     detectLanguage(title + content)    │          │
+│                      │     non-english → label immediately    │          │
+│                      │                                        │          │
+│                      │  2. still pending → postMessage to     │          │
+│                      │     Worker: { id, text: first 512 ch } │          │
+│                      │                                        │          │
+│                      │  resultsRef: Map<id, ClassLabel>       │          │
+│                      │  version: number (render trigger)      │          │
+│                      └─────────────────┬──────────────────────┘          │
+│                                        │ { map, version }                │
+│                      ┌─────────────────▼──────────────────────┐          │
+│                      │  AppShell useMemos (modified)          │          │
+│                      │                                        │          │
+│                      │  visibleArticles = sortedArticles      │          │
+│                      │    .filter(a => label not spam/non-en) │          │
+│                      │    [dep: sortedArticles, version]      │          │
+│                      │                                        │          │
+│                      │  buildFacets(visibleArticles)  ← KEY   │          │
+│                      │  computeDynamicCounts(visibleArticles) │          │
+│                      │  filterArticles(visibleArticles, ...)  │          │
+│                      └────────────────────────────────────────┘          │
+│                                                                           │
+│  getClassifierWorker() — module-level singleton (lib/classifierWorker.ts)│
+│                      │  postMessage / onmessage                          │
+└──────────────────────┼────────────────────────────────────────────────────┘
+                       │
+┌──────────────────────▼────────────────────────────────────────────────────┐
+│  Web Worker (src/workers/classifier.worker.ts)                            │
+│                                                                           │
+│  env.backends.onnx.wasm.numThreads = 1  (GitHub Pages: no COOP/COEP)     │
+│                                                                           │
+│  ClassifierPipeline singleton (module-level, lazy init on first message) │
+│  ┌───────────────────────────────────────────────────────────────────┐   │
+│  │  static instance: Promise<pipeline> | null                       │   │
+│  │  static getInstance() → pipeline('text-classification', model,   │   │
+│  │                                   { dtype: 'q8' })               │   │
+│  └───────────────────────────────────────────────────────────────────┘   │
+│                                                                           │
+│  onmessage({ id, text })                                                  │
+│    → await ClassifierPipeline.getInstance()                               │
+│    → result = await pipeline(text)                                        │
+│    → postMessage({ id, label: 'ham' | 'spam' | 'error', score })         │
+│                                                                           │
+│  Cache API — ONNX model artifacts cached automatically after first fetch  │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+## Key Design Decision: Facet Counts vs Hidden Articles
+
+**Decision: Facets derive from `visibleArticles` (post-ML-filter), not from all fetched articles.**
+
+Rationale:
+- A facet count "bitcoin (7)" that silently hides 4 spam articles is confusing — users expect counts to match what they will see.
+- The existing `buildFacets` call already takes `sortedArticles` as input (App.tsx line 26). Changing the input to `visibleArticles` is a one-line change and is consistent with the existing behavior: facets already update dynamically when hashtag filters are applied.
+- Including spam in facet counts while hiding spam from the list creates a UX where counts and results permanently diverge as ML results stream in. Reject.
+- While classification is `pending`, articles are treated as visible (fail-open). Only confirmed `spam` and `non-english` labels hide articles. So facets start complete and shrink as ML results arrive — no jarring count jumps.
+
+## New Files and Modified Files
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `src/workers/classifier.worker.ts` | ONNX pipeline singleton, onmessage handler, numThreads=1 config |
+| `src/lib/classifierWorker.ts` | Module-level Worker getter (mirrors pool.ts singleton pattern) |
+| `src/lib/languageDetect.ts` | franc-min wrapper returning `'english' \| 'non-english' \| 'undetermined'` |
+| `src/hooks/useClassification.ts` | Orchestrates franc-min + worker, maintains result Map + version counter |
+
+### Modified Files
+
+| File | Change |
+|------|--------|
+| `src/types/nostr.ts` | Add `ClassificationLabel` type: `'pending' \| 'ham' \| 'spam' \| 'non-english' \| 'error'` |
+| `src/App.tsx` | Wire `useClassification`; add `visibleArticles` memo; update 3 downstream memo inputs |
+
+### Unchanged Files
+
+Everything else: `nostrReducer.ts`, `NostrContext.tsx`, `useArticleFetch.ts`, `useProfileFetch.ts`, `useReplyFetch.ts`, `lib/pool.ts`, `lib/facets.ts`, `lib/nostr.ts`, all components.
+
+## Recommended v1.1 Project Structure (additions only)
+
+```
+src/
+├── workers/
+│   └── classifier.worker.ts       # ONNX worker: singleton pipeline, message handler
+├── lib/
+│   ├── classifierWorker.ts        # Module-level Worker getter (mirrors pool.ts)
+│   ├── languageDetect.ts          # franc-min wrapper, sync, pure function
+│   ├── facets.ts                  # UNCHANGED
+│   ├── nostr.ts                   # UNCHANGED
+│   └── pool.ts                    # UNCHANGED
+├── hooks/
+│   ├── useClassification.ts       # Worker + franc-min orchestration, result Map
+│   ├── useArticleFetch.ts         # UNCHANGED
+│   ├── useProfileFetch.ts         # UNCHANGED
+│   └── useReplyFetch.ts           # UNCHANGED
+├── types/
+│   └── nostr.ts                   # Add ClassificationLabel type
+└── App.tsx                        # Add visibleArticles memo; wire useClassification
+```
+
+## Architectural Patterns
+
+### Pattern 1: Module-Level Worker Singleton (mirrors pool.ts)
+
+**What:** The classifier Worker is created exactly once using a module-level null-check getter, identical to how `lib/pool.ts` exports the SimplePool singleton. This is the strongest StrictMode guard available — the module is evaluated once per page load, regardless of how many times React mounts/unmounts components.
+
+**When to use:** Any stateful browser resource that must not be re-created on React re-renders. The existing codebase uses this for WebSocket connections; the same rule applies to the Worker.
+
+**Trade-offs:** The Worker lives for the entire page lifetime. This is correct — terminating and recreating the Worker would force re-downloading the ONNX model from Cache API on each recreation.
+
+**Example:**
+```typescript
+// src/lib/classifierWorker.ts
+let _worker: Worker | null = null
+
+export function getClassifierWorker(): Worker {
+  if (!_worker) {
+    _worker = new Worker(
+      new URL('../workers/classifier.worker.ts', import.meta.url),
+      { type: 'module' }
+    )
+  }
+  return _worker
+}
+```
+
+### Pattern 2: Classification State in useRef Map + Version Counter
+
+**What:** `useClassification` maintains a `useRef<Map<string, ClassificationLabel>>` that is mutated by worker callbacks. A companion `useState` version counter is incremented on each mutation to trigger re-renders. The Map itself never becomes React state (never causes React to diff it).
+
+**When to use:** Progressive update scenarios where many async results stream in and each result should cause a re-render, but the data structure itself is too large/complex to be immutably replaced on each update.
+
+**Trade-offs:** The version counter is an indirect dependency — `visibleArticles` memo must depend on `version` not on the Map reference. This is a small conceptual overhead.
+
+**Example:**
+```typescript
+// src/hooks/useClassification.ts
+export type ClassificationLabel = 'pending' | 'ham' | 'spam' | 'non-english' | 'error'
+
+export function useClassification(articles: Article[]) {
+  const resultsRef = useRef<Map<string, ClassificationLabel>>(new Map())
+  const [version, setVersion] = useState(0)
+
+  useEffect(() => {
+    const worker = getClassifierWorker()
+
+    // Register result handler once
+    const handleMessage = (e: MessageEvent<{ id: string; label: 'ham' | 'spam' | 'error' }>) => {
+      resultsRef.current.set(e.data.id, e.data.label)
+      setVersion(v => v + 1)
+    }
+    worker.addEventListener('message', handleMessage)
+
+    return () => worker.removeEventListener('message', handleMessage)
+  }, []) // runs once — worker singleton lives for page lifetime
+
+  useEffect(() => {
+    const worker = getClassifierWorker()
+
+    for (const article of articles) {
+      if (resultsRef.current.has(article.id)) continue  // already classified
+
+      // 1. Synchronous language gate (franc-min)
+      const sampleText = `${article.title ?? ''} ${article.content.slice(0, 400)}`
+      const lang = detectLanguage(sampleText)
+
+      if (lang === 'non-english') {
+        resultsRef.current.set(article.id, 'non-english')
+        continue
+      }
+
+      // 2. Mark pending, dispatch to ONNX worker
+      resultsRef.current.set(article.id, 'pending')
+      worker.postMessage({ id: article.id, text: article.content.slice(0, 512) })
+    }
+
+    setVersion(v => v + 1)
+  }, [articles])
+
+  return { map: resultsRef.current, version }
+}
+```
+
+### Pattern 3: ONNX Pipeline Singleton Inside the Worker
+
+**What:** The pipeline is held in a static class property inside the worker module. The worker module is evaluated once per Worker instantiation. On first message, `getInstance()` is called; it sets `this.instance` to the pending Promise and returns it. All subsequent messages await the same Promise.
+
+**When to use:** Always — repeated `pipeline()` calls re-download the model. The singleton ensures the model loads once.
+
+**Trade-offs:** First classification request incurs full model load latency (2-10 seconds). Subsequent requests are fast (50-200ms for short text). The model artifacts are cached in the browser's Cache API after first download.
+
+**Example:**
+```typescript
+// src/workers/classifier.worker.ts
+import { pipeline, env } from '@huggingface/transformers'
+
+// GitHub Pages cannot set COOP/COEP headers, so SharedArrayBuffer is unavailable.
+// numThreads=1 disables WASM threading, which requires SharedArrayBuffer.
+// Performance is adequate for 21 short texts in single-threaded WASM.
+env.backends.onnx.wasm.numThreads = 1
+
+class ClassifierPipeline {
+  static task = 'text-classification' as const
+  // q8 quantization: ~67MB for DistilBERT. Cached by Cache API after first download.
+  // Replace with a purpose-built spam model if one exists with the transformers.js library tag.
+  static model = 'Xenova/distilbert-base-uncased-finetuned-sst-2-english'
+  static instance: ReturnType<typeof pipeline> | null = null
+
+  static getInstance() {
+    this.instance ??= pipeline(this.task, this.model, { dtype: 'q8' })
+    return this.instance
+  }
+}
+
+type ClassifyRequest = { id: string; text: string }
+
+self.addEventListener('message', async (e: MessageEvent<ClassifyRequest>) => {
+  try {
+    const classifier = await ClassifierPipeline.getInstance()
+    const result = await (classifier as Function)(e.data.text, { topk: 1 })
+    const label = mapResultToLabel(result)
+    self.postMessage({ id: e.data.id, label, score: result[0]?.score ?? 0 })
+  } catch {
+    // Fail-open: error means the article stays visible
+    self.postMessage({ id: e.data.id, label: 'error', score: 0 })
+  }
+})
+
+function mapResultToLabel(result: Array<{ label: string; score: number }>): 'ham' | 'spam' {
+  // DistilBERT SST-2 returns POSITIVE/NEGATIVE — map to ham/spam heuristically.
+  // A purpose-built spam model would return SPAM/HAM directly.
+  // This mapping is a placeholder; replace with model-specific logic.
+  const top = result[0]
+  return top?.label === 'NEGATIVE' ? 'spam' : 'ham'
+}
+```
+
+### Pattern 4: franc-min as Synchronous Pre-filter
+
+**What:** `franc-min` is called synchronously in the main thread before dispatching to the Worker. Articles detected as non-English are labeled immediately and never sent to ONNX inference. franc-min supports 82 languages, is ESM-only, ~20KB, and requires no model download.
+
+**When to use:** Always — franc-min is the cheap gate before the expensive ONNX inference. A non-English article costs a few microseconds to detect vs 50-200ms for ONNX.
+
+**Trade-offs:** franc-min needs ~100+ characters for reliable detection. For very short articles (< 50 characters), `franc` returns `'und'` (undetermined) — treat `undetermined` as English (fail-open) and let ONNX classify the body instead.
+
+**Example:**
+```typescript
+// src/lib/languageDetect.ts
+import { franc } from 'franc-min'
+
+export type LanguageDetectionResult = 'english' | 'non-english' | 'undetermined'
+
+export function detectLanguage(text: string): LanguageDetectionResult {
+  if (text.trim().length < 20) return 'undetermined'
+  const code = franc(text, { minLength: 20 })
+  if (code === 'und') return 'undetermined'
+  if (code === 'eng') return 'english'
+  return 'non-english'
+}
+```
+
+### Pattern 5: visibleArticles as the Single ML-Filter Insertion Point
+
+**What:** A single `visibleArticles` memo is inserted between `sortedArticles` and all existing downstream memos in AppShell. This is the only place the ML filter is applied. All downstream code (`buildFacets`, `computeDynamicCounts`, `filterArticles`) is unchanged.
+
+**When to use:** This is the minimum-change integration. The entire ML filter is one memo.
+
+**Trade-offs:** The `version` dep from `useClassification` must be listed explicitly so React knows to re-evaluate this memo when new results arrive.
+
+**Example:**
+```typescript
+// App.tsx — AppShell, after sortedArticles memo
+const { map: classificationMap, version: classificationVersion } = useClassification(sortedArticles)
+
+const visibleArticles = useMemo(
+  () => sortedArticles.filter(a => {
+    const label = classificationMap.get(a.id)
+    // fail-open: undefined, pending, error → show the article
+    return label !== 'spam' && label !== 'non-english'
+  }),
+  [sortedArticles, classificationVersion]
+  // classificationVersion increments on each worker result → memo re-evaluates
+)
+
+// Replace sortedArticles with visibleArticles in all three downstream memos:
+const facets = useMemo(() => buildFacets(visibleArticles), [visibleArticles])
+const dynamicCounts = useMemo(
+  () => computeDynamicCounts(visibleArticles, selectedTags, matchMode),
+  [visibleArticles, selectedTags, matchMode]
+)
+const filteredArticles = useMemo(
+  () => filterArticles(visibleArticles, selectedTags, matchMode),
+  [visibleArticles, selectedTags, matchMode]
+)
+```
+
+## Data Flow: v1.1 Extended Article Pipeline
+
+```
+Relay WebSocket events
+    ↓ ARTICLE_RECEIVED dispatch
+nostrReducer: append to articles[], dedup by coordinate
+    ↓ state.articles (grows as events stream in)
+NostrContext.state.articles
+    ↓ useMemo: sortArticlesByReplies
+sortedArticles (reply-count sorted)
+    ↓ useClassification(sortedArticles) — runs on each sortedArticles change
+      ├── [sync] franc-min: detect non-English → label immediately, skip worker
+      └── [async] postMessage({ id, text: content.slice(0,512) }) to Worker
+            Worker: await ONNX pipeline → postMessage({ id, label, score })
+            → onmessage: resultsRef.current.set(id, label); setVersion(v+1)
+    ↓ { map: classificationMap, version } — version changes on each result
+visibleArticles = sortedArticles.filter(not spam, not non-english)
+    [useMemo on sortedArticles + version]
+    ├── buildFacets(visibleArticles)              [useMemo on visibleArticles]
+    ├── computeDynamicCounts(visibleArticles, ...) [useMemo]
+    └── filterArticles(visibleArticles, ...)       [useMemo]
+         ↓
+ArticleList → ArticleCard[]
+```
+
+### Worker Message Protocol
+
+Main → Worker:
+```typescript
+type ClassifyRequest = { id: string; text: string }
+// text = article.content.slice(0, 512) — BERT max is 512 tokens; char slice is a safe proxy
+```
+
+Worker → Main:
+```typescript
+type ClassifyResult = { id: string; label: 'ham' | 'spam' | 'error'; score: number }
+// score reserved for future use (confidence threshold tuning)
+```
+
+### Fail-Open Path
+
+```
+Article id arrives in articles[]
+    ↓
+classificationMap.get(id) → ?
+    undefined      → show (not yet submitted, e.g. worker not started)
+    'pending'      → show (awaiting result)
+    'error'        → show (worker threw, model load failed, timeout)
+    'ham'          → show
+    'non-english'  → HIDE
+    'spam'         → HIDE
+```
+
+No error in franc-min, the Worker, or the model loader causes an article to disappear unless explicitly classified as spam or non-english. All failure modes fall through to visible.
+
+## StrictMode and Worker Singleton Interaction
+
+**The problem:** React StrictMode in development mounts components, runs effects, unmounts, then mounts again. If the Worker is created inside a `useEffect`, the cleanup on unmount terminates the Worker; the second mount creates a new one and triggers ONNX model re-initialization (re-download from Cache API or at minimum re-parsing).
+
+**Solution:** The module-level singleton pattern (`lib/classifierWorker.ts`) mirrors `lib/pool.ts` exactly. The Worker is created when `getClassifierWorker()` is first called. Subsequent calls return the same instance. No `useEffect` creates or terminates the Worker. StrictMode double-mount has no effect — the second mount calls `getClassifierWorker()` and gets back the already-created Worker. This is the same reason `lib/pool.ts` was written as a module-level export: it was explicitly chosen for StrictMode safety.
+
+The `addEventListener('message', handler)` + cleanup `removeEventListener` pattern in the hook is safe for StrictMode double-mount because adding and removing event listeners is idempotent — the Worker itself is unaffected.
+
+## Caching Layers
+
+| Layer | What | Mechanism | Persistence |
+|-------|------|-----------|-------------|
+| ONNX model artifacts | Model weights, tokenizer config (~67MB q8 DistilBERT) | Cache API — automatic in `@huggingface/transformers`; controlled by `env.useBrowserCache` (default `true`) | Survives page reload; evictable by browser under storage pressure |
+| Classification results (in-memory) | `resultsRef.current: Map<id, label>` | Module-level through `useRef` in hook | Session only — lost on page reload. Re-classification runs on next load, but model is cached so it's fast |
+| Classification results (cross-session, optional) | Same Map, serialized | `localStorage` keyed by event id | Survives reload; requires pruning logic. Defer to v1.2. |
+
+**Recommendation for v1.1:** In-memory only. localStorage cross-session caching is a worthwhile future optimization but adds serialization, quota management, and stale-entry pruning complexity that is not needed for the initial feature.
+
+## Build Order (Dependency-Respecting)
+
+Each step is independently testable before the next:
+
+**Step 1 — `src/types/nostr.ts`**
+Add `ClassificationLabel = 'pending' | 'ham' | 'spam' | 'non-english' | 'error'`. Zero dependencies. Unblocks all subsequent steps.
+
+**Step 2 — `src/lib/languageDetect.ts`**
+Thin franc-min wrapper. Pure function, no browser APIs. Write Vitest unit tests immediately (test English, non-English, and short-text/undetermined cases). Install `franc-min` at this step.
+
+**Step 3 — `src/workers/classifier.worker.ts`**
+ONNX pipeline singleton. Set `numThreads = 1`. Implement `try/catch` error reply. Install `@huggingface/transformers`. Cannot be unit tested with Vitest (worker context) — manual browser test is sufficient at this step.
+
+**Step 4 — `src/lib/classifierWorker.ts`**
+Module-level Worker getter. Depends on the worker file existing (for the `new URL(...)` path). Trivial to implement; no tests needed.
+
+**Step 5 — `src/hooks/useClassification.ts`**
+Ties franc-min + Worker together. Depends on steps 1-4. Returns `{ map, version }`. Unit testable with a mock worker; Vitest can mock the `getClassifierWorker` export.
+
+**Step 6 — `src/App.tsx`**
+Wire `useClassification` into AppShell. Add `visibleArticles` memo. Update three downstream memo inputs. This is the final integration step — verify in browser that articles are progressively hidden as results arrive.
+
+**Step 7 — Tests and edge cases**
+Test: franc-min on Arabic/Chinese/Russian titles. Test: empty content. Test: worker error path (articles stay visible). Test: refetch (RESET action) clears articles[] — confirm `useClassification` re-classifies the new set (it does, because new article IDs won't be in the Map).
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Classification State in the nostrReducer
+
+**What people do:** Add `classificationMap: Map<string, ClassificationLabel>` to `NostrState` and a `CLASSIFICATION_RECEIVED` action to the reducer.
+
+**Why it's wrong:** Every worker message would dispatch a reducer action. With 21 articles, that is 21 extra dispatch cycles through the reducer. The reducer is pure Nostr protocol state — mixing in ML inference results couples two unrelated concerns. The existing "no derived/external state in the reducer" rule (parallel to "pool singleton never in React state") should be maintained.
+
+**Do this instead:** Keep classification state in a `useRef` Map in `useClassification`. The reducer stays pure.
+
+### Anti-Pattern 2: Blocking Article Render Until Classification Completes
+
+**What people do:** Show a placeholder or spinner until all articles have a final classification label.
+
+**Why it's wrong:** ONNX model load takes 2-10 seconds on first visit. Blocking render that long means users see nothing for 10+ seconds. This contradicts the existing progressive rendering behavior (articles appear as they stream from relays).
+
+**Do this instead:** Fail-open immediately — all articles start visible (`pending`), then spam/non-English articles disappear progressively as results arrive. Users see the full list immediately; quality improves in the background.
+
+### Anti-Pattern 3: Sending Full Article Bodies to the Worker
+
+**What people do:** `worker.postMessage({ id, text: article.content })` without truncation.
+
+**Why it's wrong:** BERT-family models have a 512-token hard cap. Content beyond 512 tokens is silently truncated by the tokenizer anyway. Sending a 10KB article body wastes postMessage serialization time and worker memory.
+
+**Do this instead:** `article.content.slice(0, 512)` before postMessage. 512 characters is a conservative proxy for 512 tokens (most English tokens are 4-6 characters).
+
+### Anti-Pattern 4: Creating the Worker Inside useEffect
+
+**What people do:** `useEffect(() => { const w = new Worker(...); return () => w.terminate() }, [])`
+
+**Why it's wrong:** In React StrictMode (development), this creates the worker, terminates it (cleanup), then creates it again. The second Worker has to re-initialize the ONNX pipeline. Any pending messages sent to the first Worker are lost. Behavior diverges between development and production.
+
+**Do this instead:** Use the module-level singleton pattern (`classifierWorker.ts`). The Worker is created exactly once per page load, regardless of React lifecycle.
+
+### Anti-Pattern 5: Applying ML Filter After Hashtag Filter
+
+**What people do:** Apply ML classification as a post-processing step on `filteredArticles` (after hashtag tag filter).
+
+**Why it's wrong:** Facet counts would include spam articles, dynamic counts would shift as ML results arrive in a confusing way, and the pipeline order would be inverted from the correct dependency graph.
+
+**Do this instead:** ML filter produces `visibleArticles` from `sortedArticles`. Hashtag filter and facets operate on `visibleArticles`. The invariant: every article visible anywhere in the UI has passed the ML filter.
+
+### Anti-Pattern 6: Using Zero-Shot Classification for Spam Detection
+
+**What people do:** Use `pipeline('zero-shot-classification', model)` with labels `['spam', 'ham']`.
+
+**Why it's wrong:** Zero-shot classification with BERT MNLI models is 3-10x slower than fine-tuned text classification (1-3 seconds per article vs 50-200ms). For 21 articles, that is 20-60 seconds of classification latency. Zero-shot also requires sending two forward passes (one per label).
+
+**Do this instead:** Use `pipeline('text-classification', model)` with a fine-tuned spam/ham model, or a fine-tuned sentiment model as a proxy. A purpose-built spam detection model with the `transformers.js` library tag on HuggingFace Hub is the ideal choice; check the Hub for available options.
+
+## Integration Points
+
+### New Files and Their Dependencies
+
+| File | Depends On | Consumed By |
+|------|-----------|-------------|
+| `src/workers/classifier.worker.ts` | `@huggingface/transformers` | `lib/classifierWorker.ts` |
+| `src/lib/classifierWorker.ts` | `classifier.worker.ts` (URL reference) | `hooks/useClassification.ts` |
+| `src/lib/languageDetect.ts` | `franc-min` | `hooks/useClassification.ts` |
+| `src/hooks/useClassification.ts` | `classifierWorker.ts`, `languageDetect.ts`, `types/nostr.ts` | `App.tsx` (AppShell) |
+
+### Modified Files
+
+| File | Change | Scope |
+|------|--------|-------|
+| `src/types/nostr.ts` | Add `ClassificationLabel` type | 3 lines |
+| `src/App.tsx` | Add `useClassification` call; add `visibleArticles` memo; update 3 memo inputs | ~15 lines |
+
+### Vite Configuration Note
+
+Vite natively supports `new Worker(new URL('./path/to/worker.ts', import.meta.url), { type: 'module' })` — no additional Vite config is needed. The `@vitejs/plugin-react` already installed handles the TypeScript compilation of the worker file.
+
+## Sources
+
+- Hugging Face transformers.js React tutorial (official, verified): https://huggingface.co/docs/transformers.js/tutorials/react
+- transformers.js `env.backends.onnx.wasm.numThreads` = 1 for GitHub Pages (COOP/COEP unavailable): multiple sources confirm, MEDIUM confidence
+- GitHub Pages COOP/COEP limitation (no SharedArrayBuffer): https://github.com/orgs/community/discussions/13309
+- franc GitHub (verified): https://github.com/wooorm/franc — ESM only, ISO 639-3 codes, `franc()` API, browser-compatible
+- transformers.js Cache API automatic caching (`env.useBrowserCache = true` default): multiple sources confirm
+- Real codebase inspection (HIGH confidence): `src/App.tsx`, `src/context/nostrReducer.ts`, `src/context/NostrContext.tsx`, `src/lib/pool.ts`, `src/lib/facets.ts`, `src/hooks/useArticleFetch.ts`, `src/types/nostr.ts`
+
+---
+*v1.1 ML integration architecture for: Soveng in-browser spam classification + language detection*
+*Researched: 2026-06-07*

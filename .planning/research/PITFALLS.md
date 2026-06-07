@@ -1,270 +1,125 @@
 # Pitfalls Research
 
-**Domain:** Nostr long-form reader — kind:30023 SPA on GitHub Pages
-**Researched:** 2026-06-05
-**Confidence:** HIGH (NIP specs verified; nostr-tools confirmed via Context7; GitHub Pages deploy patterns verified via Vite docs)
+**Domain:** In-browser ML content filtering added to a static Nostr long-form reader (Soveng v1.1)
+**Researched:** 2026-06-07
+**Confidence:** HIGH for WASM/worker mechanics (official docs + verified issue threads); HIGH for false-positive domain risk (training data facts confirmed); MEDIUM for GitHub Pages CDN/CSP specifics (community reports, no official HF/GH docs on this exact combination)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: querySync Hangs Forever When a Relay Never Sends EOSE
+### Pitfall 1: SMS-Trained Spam Model Over-Filters the Crypto/Bitcoin/Nostr Corpus
 
 **What goes wrong:**
-`SimplePool.querySync()` resolves only after receiving EOSE from all relays in the list. If any relay in the set silently drops the connection, closes without sending EOSE, or simply never emits EOSE (some relays return stored events with no EOSE signal), the `await pool.querySync(...)` call will never resolve, leaving the app in a permanent loading state.
+The most commonly recommended ONNX spam model for transformers.js (`onnx-community/bert-tiny-finetuned-sms-spam-detection-ONNX`, based on `mrm8488/bert-tiny-finetuned-sms-spam-detection`) was trained exclusively on the UCI SMS Spam Collection dataset — 5,570 short text messages, almost entirely English consumer SMS, with zero representation of technical writing, cryptocurrency, Bitcoin, or Nostr-protocol content. Domain-shift research on this exact model class shows accuracy dropping from 99% in-domain to 60% on out-of-domain text. The word "pump," "dump," "zap," "sats," "lightning," "key," "seed," "wallet," "free," and even "click here to verify" (standard Bitcoin wallet onboarding language) are statistically strong SMS spam signals. Nostr long-form articles are 200–2000 words of Bitcoin technical writing — nothing like 160-character consumer SMS. Running this model at default threshold (≥50% spam score = hide) will silently filter a significant fraction of legitimate articles on the first day.
 
 **Why it happens:**
-Developers assume EOSE is a protocol guarantee. It is not — NIP-01 says relays SHOULD send EOSE, not MUST. Real relays (including relay.primal.net in some configurations) have been observed returning events without following with EOSE on certain filter types.
+The model is the only small ONNX spam classifier with a pre-built HF ONNX variant that runs in transformers.js out of the box. It appears in every "browser spam detection" tutorial. Developers test on generic English text and see high accuracy, ship it, then discover domain-specific false positives in production.
 
 **How to avoid:**
-Always pass `{ maxWait: N }` to `querySync` (or the underlying `subscribeEose`). A value of 5000–8000ms is practical for a 4-relay default set. Additionally, treat a partial result (fewer than 21 events when the timeout fires) as success — render what arrived rather than showing a spinner forever. Use `enablePing: true` on the pool to detect dropped connections early.
+1. Set a conservative threshold — start at ≥0.90 spam score before hiding an article, not ≥0.50. The decision boundary at 0.50 is calibrated for SMS; long-form Bitcoin writing will cluster in the 0.55–0.80 range when triggering false positives.
+2. Add a minimum-length bypass: articles under 100 words should not be classified at all — pass them through as not-spam. Short articles are where domain shift is worst because the model has almost no context to override the vocabulary signal.
+3. Make the threshold a constant (e.g. `SPAM_THRESHOLD = 0.90`) defined in one place and documented with a comment explaining the domain-shift rationale. It will need tuning.
+4. Log classification scores to browser console in development builds so you can inspect the score distribution against real Nostr content before shipping.
+5. Consider whether a toxicity or hate-speech model would be more appropriate than a spam model — or skip ML spam classification entirely and rely on the language detection pass plus a denylist of obvious spam pubkeys.
+
+**Warning signs:**
+- During manual testing, legitimate Bitcoin/Lightning articles disappear from the list.
+- The console shows spam scores of 0.60–0.85 for articles with titles like "Running your own Lightning node."
+- After deploying, the article list becomes shorter than the unfiltered relay output without obvious spam present.
+
+**Phase to address:**
+Phase 1 (classifier integration). Must be resolved before any real-relay testing. The threshold constant and minimum-length bypass must be part of the initial implementation, not a post-ship tuning pass.
+
+---
+
+### Pitfall 2: wasmPaths Broken on the /soveng/ GitHub Pages Sub-Path
+
+**What goes wrong:**
+ONNX Runtime Web (used internally by transformers.js) must load `.wasm` binary files at runtime. By default, transformers.js resolves these relative to the origin root (`/`). The Soveng app is served at `https://gsovereignty.github.io/soveng/`, not at root. When the worker calls `pipeline(...)` without explicit `wasmPaths` configuration, the ONNX runtime tries to fetch `https://gsovereignty.github.io/ort-wasm-simd.wasm` (root-relative), gets a 404, and the pipeline fails with an opaque WASM instantiation error that does not mention the path mismatch.
+
+**Why it happens:**
+Most transformers.js tutorials and examples assume deployment at origin root. The `env.backends.onnx.wasm.wasmPaths` setting is documented but not prominent, and the error message when WASM loads the wrong path does not say "wrong path" — it says something like "failed to load WASM module" or gives a WebAssembly compile error, which developers diagnose as a version mismatch or COOP/COEP issue first.
+
+**How to avoid:**
+Set `wasmPaths` explicitly in the worker before initializing the pipeline:
 
 ```typescript
-const events = await pool.querySync(relays, filter, { maxWait: 7000 })
+import { env } from "@huggingface/transformers";
+
+// Use import.meta.url within the worker to derive the correct base
+// The ONNX WASM files must be copied into the Vite public/ directory or
+// pointed at a stable CDN URL that does not have cross-origin restrictions.
+env.backends.onnx.wasm.wasmPaths =
+  "https://cdn.jsdelivr.net/npm/onnxruntime-web@<locked-version>/dist/";
 ```
 
-**Warning signs:**
-- UI loads but never renders articles
-- No console errors — the promise is simply pending
-- Reproducible by including a relay that is temporarily unreachable
+Alternatively, copy the ONNX Runtime WASM binaries into `public/` and set `wasmPaths` to `import.meta.env.BASE_URL + "ort-wasm/"` — but this requires keeping the copied files in sync with the `onnxruntime-web` version that transformers.js bundles internally (see Pitfall 3).
 
-**Phase to address:** Relay subscription / data-fetch phase (first functional phase)
+Lock to the CDN URL at a specific pinned version. Using a CDN URL avoids the sub-path problem entirely and works for a static site with no server configuration.
+
+**Warning signs:**
+- `WebAssembly.instantiateStreaming` or `fetch` fails for a `.wasm` URL at the origin root rather than at `/soveng/`.
+- Browser network tab shows 404 for `ort-wasm-simd.wasm` or similar at `https://gsovereignty.github.io/*.wasm`.
+- Works on `localhost:5173` (served from `/`), breaks only on the deployed GitHub Pages URL.
+
+**Phase to address:**
+Phase 1 (worker + ONNX runtime setup). Must be explicitly verified in the GitHub Pages deployment smoke test, not just localhost. Add a CI step or manual checklist that loads the deployed URL and confirms no 404s in the network tab for `.wasm` files.
 
 ---
 
-### Pitfall 2: Duplicate Articles from Multi-Relay Fan-Out — Not Deduped by d-tag
+### Pitfall 3: onnxruntime-web Version Mismatch Causes Silent Runtime Failure
 
 **What goes wrong:**
-`querySync` across 4 relays returns the same kind:30023 event multiple times (same `id`) and also returns multiple versions of the same article (same `pubkey` + `d` combination, different `created_at`). If the UI naively renders all returned events, users see duplicate cards and potentially stale article content.
+transformers.js v3.x bundles or expects a specific version of `onnxruntime-web`. If you manually install `onnxruntime-web` (to copy WASM files or configure `wasmPaths`), or if you pin the CDN URL to a different version, the ONNX runtime can fail with cryptic errors like `"yn[s] is not a function"` or `"Uncaught TypeError: ... is not a function"` in the WASM module. This was confirmed in transformers.js issue #1016: specifying a custom `wasmPaths` pointing to `onnxruntime-web@1.20.0` while transformers.js 3.0.2 bundles a different version caused exactly this failure. The default (unset) `wasmPaths` worked; the custom CDN URL broke it.
 
 **Why it happens:**
-Two distinct problems get conflated:
-1. **Same event id** — the identical event propagated to multiple relays. `SimplePool` deduplicates these internally by event `id`, but only within a single `querySync` call. If you call `querySync` multiple times or rebuild the pool, dedup is lost.
-2. **Same addressable coordinate** (`kind:pubkey:d`) — an author edited the article and published a new event with the same `d` tag but a higher `created_at`. Relays may store multiple versions; not all relays enforce the "latest only" constraint from NIP-01. Clients must apply this themselves.
+The ONNX Runtime WASM binary and the JS glue code are tightly version-coupled. The JS glue in transformers.js was compiled against a specific WASM ABI. Pointing to a different WASM binary — even a patch version away — can break the function table.
 
 **How to avoid:**
-After collecting raw events, apply a two-step dedup before storing in state:
-1. Deduplicate by `event.id` (remove exact duplicates).
-2. Group by `${event.kind}:${event.pubkey}:${dTag}` and keep only the event with the highest `created_at`. Where `created_at` is equal, keep the lowest `event.id` lexically (per NIP-01 tie-breaking).
+1. Do not independently install `onnxruntime-web`. Let transformers.js manage it as a transitive dependency.
+2. If you need to set `wasmPaths` to a CDN URL, first inspect `node_modules/onnxruntime-web/package.json` to find the exact version transformers.js pulled in, then pin the CDN URL to that exact version: `https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.0/dist/`.
+3. When upgrading transformers.js, re-check the `onnxruntime-web` transitive version and update the pinned CDN URL.
+4. Add the `onnxruntime-web` version check as a line in `package.json` scripts: `"check:ort-version": "node -e \"console.log(require('onnxruntime-web/package.json').version)\""` so the pinned CDN version is verifiable in CI.
 
 **Warning signs:**
-- Article list shows the same title twice
-- An article's content looks outdated compared to what habla.news shows
-- More than 21 events returned across 4 relays for a limit:21 filter
+- `yn[s] is not a function` or similar `TypeError` thrown from within a `.wasm` module.
+- Works with no `wasmPaths` set; breaks when `wasmPaths` is set to a CDN URL.
+- `onnxruntime-web` was recently upgraded (via `npm update` or lockfile regeneration).
 
-**Phase to address:** Data normalization layer, first functional phase
+**Phase to address:**
+Phase 1 (worker setup). Lock the CDN URL to the exact pinned version before any testing. Document the pinned version with a code comment referencing this pitfall.
 
 ---
 
-### Pitfall 3: Missing `title` Tag Renders as Blank Card
+### Pitfall 4: Language Detection Mis-Flags Short Titles, Code-Heavy Text, and Mixed-Language Articles as Non-English
 
 **What goes wrong:**
-NIP-23 marks `title` as "strictly optional". In practice a meaningful fraction of kind:30023 events in the wild have no `title` tag, or have a `title` tag with an empty string. A UI that does `event.tags.find(t => t[0] === 'title')?.[1]` will get `undefined`, and rendering it directly produces a blank card with no visible label.
+`franc-min` uses trigram frequency analysis calibrated for natural language. Three failure modes specific to Nostr long-form articles:
+
+1. **Article title only**: If classification runs against the article's `title` tag (short, 3–15 words) rather than the article body, `franc` returns `"und"` (undetermined) for inputs under ~80 characters — which is treated as "unknown language" and, if configured to fail-closed, hides the article.
+2. **Code-heavy bodies**: Articles about Bitcoin programming, Nostr protocol implementation, or Lightning Network routing contain multi-line code blocks, hex strings, hex pubkeys, JSON, and base64. These look nothing like natural language trigrams. An article that is 40% code and 60% English prose can register as `"und"` or an incorrect language.
+3. **Mixed-language content**: An English article with a Spanish or Portuguese introduction paragraph (common in Bitcoin global community) can score higher for the non-English language if the first 200 characters are scraped for detection.
+
+The system is configured fail-open on error (classification error → show article), but `franc` does not throw errors for short or ambiguous input — it returns `"und"`. If the application logic treats `"und"` as non-English and hides the article, this is a silent filter failure that looks like working filtering.
 
 **Why it happens:**
-Developers read "articles" and assume a title is always present. The spec is explicit that it is optional. Draft articles (kind:30024), events published by bots, or events published by clients that embed the title only in the Markdown body follow no consistent convention.
+Developers test language detection with clean English sentences of 50+ words. Nostr article titles are 5–10 words. Nostr articles about Bitcoin development are dense with code. The `minLength` default of 10 characters is too short for reliable detection — it will attempt detection on very short inputs and return low-confidence results rather than `"und"`.
 
 **How to avoid:**
-Implement a helper that extracts metadata with safe fallbacks:
-
-```typescript
-const title = tags.find(t => t[0] === 'title')?.[1]?.trim() || 'Untitled'
-const summary = tags.find(t => t[0] === 'summary')?.[1]?.trim() || ''
-const publishedAt = tags.find(t => t[0] === 'published_at')?.[1]
-  ? parseInt(tags.find(t => t[0] === 'published_at')![1]) * 1000
-  : event.created_at * 1000
-```
-
-If no `d` tag exists, skip the event entirely — it cannot be addressed and likely malformed.
+1. Always classify against the **article body**, not the title. Strip code blocks (triple-backtick content) before passing to `franc`. Remove URLs and hex strings.
+2. Set a minimum body character threshold: if the body text (after stripping code) is under 200 characters, treat language as `"und"` (undetermined) and **pass through as English** (fail-open).
+3. Treat `"und"` as English (show the article), not as non-English (hide it). Only hide when `franc` returns a non-English language code with high confidence.
+4. Use `francAll()` and check the confidence score of the top result. If the top language score is below 0.7, treat as undetermined and show the article.
+5. Strip common code indicators before language detection: lines starting with `    ` (4-space indent), triple-backtick blocks, lines containing only hex characters (64-char pubkeys are pervasive in Nostr content).
 
 **Warning signs:**
-- Article cards with completely empty titles in the list
-- Errors when calling `.toLowerCase()` or `.slice()` on the title
+- Articles by known English-language Nostr authors disappear from the filtered list.
+- Inspection shows `franc` returning `"und"` or a non-English code for articles with significant code content.
+- Articles with short titles (e.g. "LN Routing") get filtered even when the body is clearly English.
 
-**Phase to address:** Event parsing / data model phase
-
----
-
-### Pitfall 4: Inline Markdown Render — Raw HTML / XSS from Untrusted Content
-
-**What goes wrong:**
-Long-form Nostr articles are written by anonymous authors. Many legitimate articles embed raw HTML (e.g., `<img>`, `<div>`, custom formatting). If `react-markdown` is configured with `rehype-raw` but no sanitization, a malicious author can inject `<script>` tags, `<iframe>` elements, or SVG `onload` handlers that execute JavaScript in the reader's browser.
-
-**Why it happens:**
-`react-markdown` is safe by default (strips HTML). Developers add `rehype-raw` to support legitimate embedded HTML and forget that this plugin re-enables arbitrary HTML injection. Even without `rehype-raw`, some edge cases in Markdown (e.g., `javascript:` href values) survive default parsing.
-
-**How to avoid:**
-Use `rehype-sanitize` (from the unified/rehype ecosystem) configured with a strict allowlist, or pair `rehype-raw` with `isomorphic-dompurify`. The recommended pattern:
-
-```typescript
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
-// Place rehypeSanitize AFTER rehypeRaw in the plugin chain
-rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}
-```
-
-Never use `dangerouslySetInnerHTML` with unsanitized Markdown-to-HTML output.
-
-**Warning signs:**
-- `<script>` tags appear in rendered output
-- Inline `style` attributes that reposition or hide page elements
-- Any Nostr article content that includes `<iframe src="javascript:...">` patterns
-
-**Phase to address:** Markdown render / article expansion phase
-
----
-
-### Pitfall 5: Vite `base` Misconfiguration Breaks All Asset Paths on GitHub Pages
-
-**What goes wrong:**
-The app builds locally, all links work at `localhost:5173`, then GitHub Pages deployment produces a blank page with 404s on every JS/CSS/image asset. The root cause is that GitHub Pages project repos serve from `https://username.github.io/repo-name/` but the default Vite `base` is `'/'`, which makes all asset `src` and `href` attributes point at `https://username.github.io/...` (root of the Pages domain) rather than `https://username.github.io/repo-name/...`.
-
-**Why it happens:**
-Vite does the right thing for local dev (base `/` works). The mismatch only appears after deploy because the subdirectory prefix is invisible during development. Developers test locally, ship, and see the blank page for the first time.
-
-**How to avoid:**
-Set `base` in `vite.config.ts` to the repository name for project page deploys:
-
-```typescript
-export default defineConfig({
-  base: '/repo-name/',   // e.g. '/soveng/'
-})
-```
-
-If a custom domain is configured pointing at the root, use `base: '/'`. Add this to the GitHub Actions deploy workflow as an env variable so it is not accidentally hardcoded to the wrong value when the repo is renamed.
-
-**Warning signs:**
-- Blank page after deploy; browser DevTools shows 404 on `main.js` or `index.css`
-- Asset URLs in the deployed HTML start with `/assets/` instead of `/repo-name/assets/`
-
-**Phase to address:** GitHub Actions / deploy workflow phase
-
----
-
-### Pitfall 6: GitHub Pages SPA Routing 404 on Direct URL or Refresh
-
-**What goes wrong:**
-If the app ever uses client-side routing (React Router or similar) with `BrowserRouter` and a URL like `/article/abc123`, refreshing that URL or sharing it causes GitHub Pages to return its own 404 page. GitHub Pages serves static files only — it has no server-side rewrite rule to redirect unknown paths back to `index.html`.
-
-**Why it happens:**
-GitHub Pages treats every path as a file lookup. Unknown paths get the platform-level 404, not the app's `index.html`.
-
-**How to avoid:**
-For this app's v1 scope, avoid `BrowserRouter` entirely and use hash-based routing (`HashRouter` / `createHashRouter`) or no routing at all (single view with state). If `BrowserRouter` is needed, use the `404.html → redirect script → index.html` trick: copy `dist/index.html` to `dist/404.html` during the build so GitHub Pages serves the app for any path, and inject a redirect script to reconstruct the path in the SPA.
-
-**Warning signs:**
-- Refreshing any URL other than the root returns a GitHub 404 page
-- Sharing a direct article URL fails for the recipient
-
-**Phase to address:** GitHub Actions / deploy workflow phase (design the routing strategy up-front)
-
----
-
-### Pitfall 7: kind:0 Profile Content Is Arbitrary JSON — Malformed or Missing Fields
-
-**What goes wrong:**
-The `content` field of a kind:0 event is a JSON string. Clients are free to include any fields they like, name them inconsistently, or publish malformed JSON. Common real-world problems:
-- `JSON.parse(event.content)` throws because the content is not valid JSON
-- `name` is present but empty; `display_name` is present but `name` is absent
-- `picture` contains an HTTP URL that will be blocked as mixed content on an HTTPS page
-- `picture` contains a URL that returns 404 or a non-image response
-- Some clients write `displayName` (camelCase) instead of `display_name`
-
-**Why it happens:**
-NIP-01 specifies the fields but cannot enforce them. Different Nostr clients (Amethyst, Damus, Snort) have diverged on field names. Authors may have never set a profile, leaving an empty or null content field.
-
-**How to avoid:**
-Wrap all kind:0 parsing in a try/catch. Define a priority order for display name resolution: `display_name` → `displayName` → `name` → first 8 chars of pubkey (hex). Use a fallback identicon or monogram avatar component for missing/broken pictures. For `picture` URLs, set `onError` on the `<img>` to swap to the fallback:
-
-```tsx
-<img
-  src={profile?.picture}
-  onError={(e) => { (e.target as HTMLImageElement).src = fallbackAvatarUrl }}
-  alt={displayName}
-/>
-```
-
-**Warning signs:**
-- Console errors: `SyntaxError: Unexpected token in JSON`
-- Profile names showing as undefined or empty
-- Broken image icons across multiple author avatars
-
-**Phase to address:** Profile resolution phase
-
----
-
-### Pitfall 8: Mixed-Content Blocks HTTP Image URLs on HTTPS GitHub Pages
-
-**What goes wrong:**
-GitHub Pages enforces HTTPS. Nostr author profile `picture` fields and article `image` tags frequently contain plain `http://` URLs (particularly older profiles or self-hosted media). Modern browsers block mixed passive content or auto-upgrade it to HTTPS; if the resource is not available over HTTPS, the image silently fails to load.
-
-**Why it happens:**
-Authors set their picture URLs years ago before their image host added HTTPS, or they use self-signed HTTP servers. The Nostr protocol places no constraint on URL scheme in profile fields.
-
-**How to avoid:**
-After fetching a profile, attempt to upgrade `http://` to `https://` before rendering. Use the `onError` fallback (see Pitfall 7) to catch cases where HTTPS is unavailable. Do not add a CSP `upgrade-insecure-requests` meta tag — it can cause other side effects on assets you control.
-
-**Warning signs:**
-- Profile pictures fail in production but work on local dev (which may be HTTP)
-- Browser console: `Mixed Content: The page ... was loaded over HTTPS, but requested an insecure image`
-
-**Phase to address:** Profile resolution phase / article display phase
-
----
-
-### Pitfall 9: Hashtag `t` Tag Case Inconsistency Breaks Counts and Filtering
-
-**What goes wrong:**
-Authors write `t` tag values in any casing: `["t", "Bitcoin"]`, `["t", "bitcoin"]`, `["t", "BITCOIN"]`. If the app counts and filters using raw string equality, "Bitcoin" and "bitcoin" are counted as two separate hashtags with independent checkboxes, and selecting one does not match articles using the other variant.
-
-**Why it happens:**
-NIP-01 does not mandate lowercase for `t` tag values. Different clients normalize differently. The relay filter spec for `#t` does exact-match queries, but that is a relay concern — the client-side facet logic is unspecified.
-
-**How to avoid:**
-Normalize all `t` tag values to lowercase when building the facet index and when checking membership:
-
-```typescript
-const hashtags = event.tags
-  .filter(t => t[0] === 't' && t[1])
-  .map(t => t[1].toLowerCase().trim())
-```
-
-Store the lowercased form in state and display it consistently. Count by lowercased form; filter by lowercased form.
-
-**Warning signs:**
-- Same topic appears multiple times in the sidebar with different capitalizations and different counts
-- Selecting "bitcoin" does not surface an article tagged `["t", "Bitcoin"]`
-
-**Phase to address:** Facet / hashtag sidebar phase
-
----
-
-### Pitfall 10: AND Filter Logic Edge Case — Empty Selection Matches Nothing or Everything
-
-**What goes wrong:**
-With AND mode: if no checkboxes are selected, the correct behavior is to show all 21 articles. A naive AND implementation `articles.filter(a => selectedTags.every(t => articleTags.has(t)))` returns all articles when `selectedTags` is empty (because `every` on empty array is vacuously true). This is actually correct, but if the developer instead writes the condition as `selectedTags.size > 0 && ...`, they accidentally show nothing when no filter is active.
-
-With OR mode: if no checkboxes are selected, `some` on an empty array returns false — nothing matches. The OR empty case must be handled explicitly.
-
-**Why it happens:**
-JavaScript's `Array.every([])` returning `true` is counterintuitive, leading to defensive "guard" code that inverts the behavior. OR mode's `Array.some([])` returning `false` is usually discovered only after implementing AND mode first.
-
-**How to avoid:**
-Define the filter contract explicitly before coding it:
-
-```
-selectedTags is empty → show all articles (regardless of AND/OR mode)
-AND mode → article must carry ALL selected tags
-OR mode  → article must carry AT LEAST ONE selected tag
-```
-
-Write a unit test for the empty-selection case and each mode before wiring up the toggle.
-
-**Warning signs:**
-- Unchecking all checkboxes hides all articles instead of showing all
-- OR mode with one tag selected works; zero tags selected shows empty list
-
-**Phase to address:** Hashtag filter / facet phase
+**Phase to address:**
+Phase 1 (language detection integration). The text preprocessing function (strip code → measure length → run franc → evaluate confidence) must be unit-tested with representative Nostr content: a title-only string, a code-heavy body, a mixed-language opening, and a long clean English body.
 
 ---
 
@@ -272,11 +127,14 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Hardcode relay list in source | No config UI needed | Relay goes offline, app silently degrades with no user recourse | Acceptable for v1 per project scope |
-| Skip `maxWait` on `querySync` | One less parameter to think about | App hangs permanently on unresponsive relay | Never — always set a timeout |
-| Render Markdown without sanitization | Faster to wire up | XSS vulnerability from any malicious article author | Never |
-| No kind:30023 d-tag dedup | Simpler data pipeline | Duplicate/stale articles visible to users | Never — correctness issue |
-| Single `t` tag fetch, no lowercase normalization | Slightly less code | Broken facet counts from day one | Never |
+| Use default spam threshold (0.50) | No threshold tuning work | Silently filters 20–40% of legitimate Bitcoin/Nostr articles | Never — domain shift is verified |
+| Skip minimum-length bypass for spam classifier | Simpler code | Short technical articles falsely classified as spam at high rate | Never |
+| Set `wasmPaths` to latest CDN URL (unversioned, e.g. `@latest`) | No need to track ORT version | Breaks when CDN content updates, version mismatch causes cryptic failures | Never for WASM paths |
+| Classify on article title only | Faster (less text to process) | High false-negative rate for language detection on short titles | Never |
+| Treat `"und"` franc result as non-English | Simpler filter logic | Silently hides code-heavy articles and short-title articles | Never |
+| Inline the pipeline call in a React component (no worker) | Easier to wire up | Blocks main thread, causes 2–10 second UI freeze during model load and inference | Acceptable only in a throwaway prototype |
+| Skip `dispose()` on pipeline in worker | No cleanup code needed | GPU/WASM memory leak; observable after 30+ tab-open cycles or repeated SPA navigations | Acceptable only if the worker lives for the full page lifetime (single-page SPA with no re-mount) — document this explicitly |
+| Initialize pipeline inside `useEffect` without module-level guard | Simpler code | React StrictMode double-mounts cause two concurrent pipeline initializations, race to a shared singleton, or double model download | Never — use module-level singleton ref |
 
 ---
 
@@ -284,12 +142,13 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| SimplePool / nostr-tools | Calling `querySync` without `maxWait` | Always pass `{ maxWait: 7000 }` or similar |
-| SimplePool / nostr-tools | Opening one subscription per relay manually | Use `SimplePool` — it multiplexes over a single WebSocket per relay URL |
-| kind:30023 filter | Using `limit: 21` and expecting exactly 21 unique articles | Relays interpret `limit` per-connection; fetch more, dedup client-side, then take top 21 by `created_at` |
-| kind:0 fetch | Issuing one REQ per author sequentially | Batch all unique `pubkey` values into a single `authors: [...]` filter |
-| GitHub Pages | Setting `base: '/'` for a project-page repo | Use `base: '/repo-name/'` for project repos; `base: '/'` only for user/org root pages or custom domains |
-| react-markdown | Adding `rehype-raw` without `rehype-sanitize` | Always follow `rehype-raw` with `rehype-sanitize` in the plugin array |
+| Vite + transformers.js | Not adding `@huggingface/transformers` to `optimizeDeps.exclude` | Add to `optimizeDeps.exclude` in `vite.config.ts`; also add `assetsInclude: ['**/*.onnx']`. Without this, Vite's esbuild pre-bundler tries to parse WASM imports and fails with a cryptic error. |
+| Vite + Web Worker | Using `new URL('./classifier.worker.ts', import.meta.url)` without `{ type: 'module' }` | Use `new Worker(new URL('./classifier.worker.ts', import.meta.url), { type: 'module' })`. Without `type: 'module'`, the worker cannot use ES module imports, and the transformers.js import inside the worker will fail. |
+| Vite + Web Worker dependency bundling | Using `new URL()` pattern and expecting dependencies to be bundled | `new URL()`-spawned workers ship source as-is with no dependency bundling. Use Vite's `?worker` import syntax (`import ClassifierWorker from './classifier.worker?worker'`) to get full dependency resolution and chunking. |
+| transformers.js + GitHub Pages sub-path | Not setting `env.backends.onnx.wasm.wasmPaths` | Must point to a CDN URL pinned to the exact `onnxruntime-web` version that transformers.js installs as a transitive dependency. |
+| transformers.js + numThreads | Expecting multi-threaded WASM on GitHub Pages | GitHub Pages cannot set `COOP: same-origin` / `COEP: require-corp` headers, so `SharedArrayBuffer` is unavailable. ONNX Runtime Web falls back to single-threaded WASM automatically, but this must be set explicitly to suppress the "SharedArrayBuffer not available" warning and avoid the runtime attempting threaded mode: `env.backends.onnx.wasm.numThreads = 1`. |
+| Hugging Face CDN + GitHub Pages | No CSP consideration | GitHub Pages does not set `connect-src` restrictions by default, but if you add a `<meta http-equiv="Content-Security-Policy">` tag (for XSS hardening), you must explicitly allow `https://huggingface.co`, `https://cdn-lfs.huggingface.co`, and `https://cdn-lfs-us-1.huggingface.co` in `connect-src`. |
+| franc-min + transformers.js worker | Running franc inside the Web Worker | franc is synchronous and fast (< 1ms for 500 words). Run it on the main thread after receiving the article list, not inside the inference worker. This keeps language detection from adding latency to the worker message queue and simplifies the architecture. |
 
 ---
 
@@ -297,10 +156,12 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| One kind:0 REQ per author | 21 separate WebSocket round-trips for profile data | Batch into single REQ with `authors: [pubkey1, pubkey2, ...]` | Immediately — adds ~1–3s to load |
-| Re-opening relay connections on every render / effect re-run | Pool created and destroyed on each React render cycle | Create pool outside component or in a stable ref/context | Immediately — thrashes WebSocket connections |
-| Fetching kind:30023 with no `limit` | Relay returns hundreds of events, UI attempts to render all | Always include `limit: 50` or similar in the filter (fetch extra for dedup headroom) | At relays with large stores |
-| Inline Markdown expansion without virtualization | Expanding 5+ long articles simultaneously causes jank | Expand only one article at a time, or lazy-mount expanded content | At ~3–5 expanded articles |
+| Re-running inference on every React render | CPU spike every time the component re-renders (hashtag filter toggle, etc.); `performance.now()` shows 200–800ms per article batch | Cache classification results by `event.id` in a `Map` stored in a `useRef` (or module-level state); only classify new event IDs that aren't in the cache | From article 1 — inference is expensive every time |
+| Classifying all articles on each relay event (streaming) | Worker is bombarded with messages during relay streaming phase; messages queue up | Gate classification: collect articles until EOSE, then classify the batch once | Immediately if relay streaming overlaps with classification |
+| Blocking main thread with pipeline call | UI freezes 2–10 seconds during model load; users see unresponsive scroll and interaction | All `pipeline()` and `pipe(text)` calls must be in a Web Worker. Main thread only sends messages and receives results. | From first page load |
+| Large postMessage payload | Transferring full article bodies (potentially 10–50KB per article × 21 articles) across the worker boundary causes GC pressure | Send only the necessary text for classification (title + first 500 chars of body is sufficient for spam/lang detection); do not send full Markdown body | Visible at ~20+ articles with long bodies |
+| First-visit 4.5MB model download blocking classification | Articles render immediately but "show all" because filtering waits; then articles disappear as classifier loads; layout shift | Show a subtle "Filtering..." indicator during model download; use the browser Cache API / IndexedDB for second-visit persistence; consider showing unfiltered list with a "ML filter loading" badge | On every first visit with cold cache — this is the default experience |
+| No model download progress feedback | Users see a spinner for 10–30 seconds on slow connections with no indication of why | Emit progress events from the worker (`onprogress` in transformers.js pipeline) and show a download progress bar or percentage in the UI | On slow connections / first visit |
 
 ---
 
@@ -308,10 +169,9 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| `rehype-raw` without sanitization | Stored XSS from malicious article content | Add `rehype-sanitize` after `rehype-raw` in plugin chain |
-| Rendering profile `name` or `display_name` via `dangerouslySetInnerHTML` | XSS from crafted profile name | Use React's text rendering (JSX interpolation) — never `dangerouslySetInnerHTML` for user-supplied strings |
-| Constructing relay URLs from user input (future feature) | SSRF / open relay abuse | Not applicable in v1 (fixed relay list), but document for future |
-| Accepting `javascript:` scheme in article `image` tag or `picture` field | XSS via URL scheme | Strip or reject URLs not starting with `https://` or `http://` before rendering in `src` attributes |
+| Using `rehype-raw` alongside ML-classified content | Even "not spam" articles may contain malicious HTML in their Markdown bodies — ML classification does not replace XSS sanitization | The existing `rehype-sanitize` pipeline must remain unchanged. ML filtering is an additional layer on top of, not instead of, sanitization. |
+| Logging article content in worker console during development | Article bodies may contain private keys embedded in tutorial content; console logs persist in browser memory | Limit worker debug logging to scores and event IDs only, not full text content |
+| Trusting ML output as a security control | A motivated adversary can craft content that scores below the spam threshold | ML filtering is a UX quality feature, not a security boundary. It does not replace the sanitization pipeline. |
 
 ---
 
@@ -319,26 +179,31 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| No loading state while WebSocket fetches run | Page appears broken/blank for 2–5 seconds | Show skeleton cards or a terminal-style "fetching..." indicator immediately on mount |
-| No partial-result rendering — wait for all relays | Slow relay delays all articles | Render articles as they arrive; update count as dedup runs |
-| Empty hashtag sidebar when no `t` tags present | Sidebar looks broken | Hide sidebar or show "(no tags)" message when tag set is empty |
-| Profile pictures loading after article list renders | Layout shift as avatars pop in | Reserve fixed dimensions for avatar `<img>` elements |
-| AND mode with many tags selected matches nothing | User selects 3 niche tags, sees empty list with no explanation | Show "0 articles match all selected tags — try OR mode" message when AND filter returns nothing |
+| Articles disappearing from list after initial render | Jarring layout shift; users reading an article title see it vanish | Classify articles before rendering them to the list (classify during the existing EOSE wait), OR use a CSS `min-height` reservation on the list to prevent reflow; at minimum, animate removal |
+| No way to see filtered articles | User cannot verify the filter is working correctly or recover from a false positive | Add a "Show filtered" toggle or a count badge ("3 articles hidden") that lets users inspect and override the filter |
+| Filtering ON by default with no user consent or awareness | Users do not know ML classification is running; may file bug reports for "missing" articles | Show a subtle status line: "ML filter active — 3 hidden" with a toggle. The filter-on-by-default requirement is correct but must be visible. |
+| Filter toggle resets on page reload | Users who disable the filter must re-disable it every visit | Persist filter state to `localStorage`. Key: `soveng:ml-filter-enabled`. |
+| No classification error surfacing | When the model fails to load (CDN down, WASM error), articles are shown unfiltered (correct fail-open behavior) but the user sees no indication | Show a non-blocking toast or status indicator: "Content filter unavailable" so users understand the filter is not active |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **EOSE timeout:** `querySync` (or every `subscribeEose` call) passes `maxWait` — verify by temporarily blocking a relay and confirming the app resolves within the timeout window
-- [ ] **d-tag dedup:** After fetching, confirm that the same `pubkey:d` combination appears at most once in the article list
-- [ ] **Title fallback:** Verify that events with no `title` tag render "Untitled" or equivalent, not blank
-- [ ] **Profile JSON guard:** `JSON.parse(kind0.content)` wrapped in try/catch; broken profiles show pubkey fallback
-- [ ] **Avatar onError:** `<img onError>` wired to fallback; verify by pointing `picture` at a non-existent URL in dev
-- [ ] **Markdown sanitization:** Paste `<script>alert(1)</script>` into a test kind:30023 event content and confirm no execution
-- [ ] **Hashtag lowercase:** Confirm "Bitcoin" and "bitcoin" are counted together and both matched by a single checkbox
-- [ ] **AND empty-selection:** Unchecking all checkboxes shows all 21 articles in both AND and OR mode
-- [ ] **GitHub Pages base:** Deployed site loads all JS/CSS assets (check Network tab); no 404s on `main.js`
-- [ ] **Mixed content:** Deployed HTTPS site renders profile pictures with `http://` URLs gracefully (either upgraded or fallback shown)
+- [ ] **WASM path configuration:** Smoke-test on `https://gsovereignty.github.io/soveng/` (not localhost) — verify no 404s for `.wasm` files in the browser network tab.
+- [ ] **numThreads=1:** Verify no `SharedArrayBuffer` warning in console on GitHub Pages deploy (COOP/COEP headers are absent).
+- [ ] **ORT version pin:** Confirm the CDN URL version in `wasmPaths` matches the exact `onnxruntime-web` version in `node_modules/onnxruntime-web/package.json`.
+- [ ] **Spam threshold documented:** `SPAM_THRESHOLD` constant exists, is set to ≥0.90, and has a comment explaining the domain-shift rationale.
+- [ ] **Minimum-length bypass:** Articles under 100 words bypass spam classification (pass-through as not-spam).
+- [ ] **franc treats `"und"` as English:** Confirm the code path for `franc` returning `"und"` shows the article, not hides it.
+- [ ] **Code-stripped language detection:** Preprocessing strips triple-backtick code blocks before passing text to franc.
+- [ ] **Worker StrictMode safety:** Worker is instantiated at module level (not inside `useEffect`) or behind a `useRef` guard so React's dev-mode double-mount does not create two workers.
+- [ ] **Worker termination on unmount:** If the worker is owned by a component (rather than module-level), the `useEffect` cleanup calls `worker.terminate()`.
+- [ ] **Result cache by event.id:** Classification results are stored in a `Map<eventId, ClassificationResult>` and re-used on re-renders.
+- [ ] **Vite optimizeDeps:** `@huggingface/transformers` and `onnxruntime-web` are in `optimizeDeps.exclude` in `vite.config.ts`.
+- [ ] **Worker uses `?worker` import:** The worker file is imported via Vite's `?worker` syntax to ensure dependency bundling, not bare `new URL()`.
+- [ ] **Filter state persisted:** `localStorage` key `soveng:ml-filter-enabled` persists the filter toggle across reloads.
+- [ ] **Filtered count visible:** A count or indicator of hidden articles is visible in the UI.
+- [ ] **Filter unavailable state:** When classification fails (model load error, CDN down), the UI shows a non-blocking "Content filter unavailable" notice.
 
 ---
 
@@ -346,12 +211,14 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| EOSE hang in production | LOW | Add `maxWait` parameter; one-line change, redeploy |
-| Duplicate articles visible | LOW | Add dedup map in data normalization; no API changes |
-| XSS from Markdown | MEDIUM | Add `rehype-sanitize` plugin; test all existing article content renders correctly |
-| Wrong Vite `base` on deploy | LOW | Update `vite.config.ts`, push, redeploy via GitHub Actions |
-| SPA routing 404s | MEDIUM | Switch to `HashRouter` or copy `index.html` → `404.html` in build step |
-| Hashtag case splitting | LOW | Add `.toLowerCase()` to tag normalization; recount from existing data |
+| Over-filtering due to wrong threshold | LOW | Bump `SPAM_THRESHOLD` constant from 0.50 → 0.90, redeploy. No model change needed. |
+| WASM path broken on deployed URL | LOW–MEDIUM | Set `wasmPaths` to stable CDN URL, update Vite config, redeploy. Verify on live URL. |
+| ORT version mismatch crashes pipeline | MEDIUM | Check `node_modules/onnxruntime-web/package.json` for exact version. Update CDN URL pin. Bump transformers.js if version is too old. |
+| franc filtering code-heavy articles | LOW | Add code-block stripping to preprocessing function. Unit test with code-heavy fixture. Redeploy. |
+| Main thread blocked (no worker) | HIGH | Refactoring pipeline call into a worker requires architectural change. Do not ship classification on main thread — this cannot be shimmed later. |
+| Worker double-instantiation under StrictMode | MEDIUM | Refactor to module-level singleton ref. Requires changing how worker is created and referenced in components. |
+| Model download not cached between sessions | LOW | transformers.js already caches via browser Cache API automatically. If not working, verify the origin is served over HTTPS (required for Cache API). GitHub Pages is HTTPS. |
+| CDN down at HF, model cannot load | LOW (UX) | fail-open means articles are shown unfiltered. Show "filter unavailable" notice. No code change needed if fail-open is implemented correctly. |
 
 ---
 
@@ -359,32 +226,37 @@ Write a unit test for the empty-selection case and each mode before wiring up th
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| EOSE hang (no maxWait) | Relay subscription phase | Block one relay in dev; confirm resolution within timeout |
-| d-tag dedup missing | Data normalization / relay subscription phase | Check rendered list for duplicate article titles |
-| Missing title fallback | Event parsing phase | Load events with no title tag; confirm fallback renders |
-| Markdown XSS | Article expansion phase | Inject `<script>` in test event content; confirm no execution |
-| Vite base misconfiguration | GitHub Actions deploy phase | Inspect deployed HTML source for correct asset paths |
-| SPA routing 404 | GitHub Actions deploy phase | Share a direct URL; confirm recipient sees the app |
-| kind:0 malformed JSON | Profile resolution phase | Test with pubkeys known to have empty/invalid kind:0 events |
-| Mixed-content HTTP images | Profile resolution / article display phase | Deploy to HTTPS; check Network tab for mixed-content warnings |
-| Hashtag case inconsistency | Facet sidebar phase | Search real relay data for mixed-case t tags |
-| AND/OR empty-selection edge case | Facet filter phase | Unit test: empty selection → all articles visible |
+| SMS model over-filters crypto corpus (threshold, min-length) | Phase 1: Classifier integration | Manual test: run against 20 real Nostr articles from default relays, inspect spam scores in console, verify no false positives above threshold |
+| wasmPaths broken on /soveng/ sub-path | Phase 1: Worker + ONNX setup | Deployed URL smoke test: network tab shows no `.wasm` 404s |
+| onnxruntime-web version mismatch | Phase 1: Worker + ONNX setup | `npm ls onnxruntime-web` output matches CDN URL version pin |
+| franc mis-flags short/code-heavy text | Phase 1: Language detection | Unit tests: title-only string → pass-through; code-heavy body → pass-through; clean English body → detected; mixed-lang body → evaluated against confidence threshold |
+| React StrictMode double worker instantiation | Phase 1: Worker lifecycle | Run dev build with StrictMode; verify only one worker is created (worker console.log on init) |
+| Re-running inference on re-render | Phase 1: Caching | Verify `Map<eventId, result>` cache is populated after first classification pass; toggle hashtag filter and confirm no new worker messages are sent for already-classified articles |
+| Layout shift as articles disappear | Phase 2: UX polish | Visual regression: load app, observe article list before and after classification completes; articles should either pre-filter or animate out |
+| No filter status visibility | Phase 2: UX polish | Verify filtered count badge and filter toggle are visible in the deployed UI |
+| Missing optimizeDeps.exclude | Phase 1: Vite config | `npm run dev` shows no "failed to pre-bundle" warnings; dev server starts cleanly |
+| CDN fetch blocked by CSP | Phase 1: Vite config | If a CSP meta tag is present in index.html, verify `connect-src` includes HF CDN domains |
+| numThreads not set to 1 | Phase 1: Worker setup | Browser console on GitHub Pages deploy shows no `SharedArrayBuffer` warning |
 
 ---
 
 ## Sources
 
-- [NIP-23 Long-form Content](https://github.com/nostr-protocol/nips/blob/master/23.md) — tag optionality confirmed
-- [NIP-01 Basic Protocol](https://nips.nostr.com/1) — EOSE semantics, replaceable event dedup rules
-- [nostr-tools SimplePool — Context7](https://context7.com/nbd-wtf/nostr-tools/llms.txt) — `querySync`/`maxWait` behavior confirmed
-- [NIP-33 Parameterized Replaceable Events](https://nostr.co.uk/nips/nip-33/) — d-tag coordinate semantics
-- [nostr-tools abstract-pool.ts](https://github.com/nbd-wtf/nostr-tools/blob/master/abstract-pool.ts) — `eoseTimeout: params.maxWait` implementation detail
-- [Vite Static Deploy Guide](https://vite.dev/guide/static-deploy) — GitHub Pages `base` config
-- [GitHub Pages SPA 404 pattern](https://dev.to/lico/handling-404-error-in-spa-deployed-on-github-pages-246p)
-- [react-markdown XSS / rehype-sanitize](https://www.hackerone.com/blog/secure-markdown-rendering-react-balancing-flexibility-and-safety)
-- [NIP-24 Extra metadata fields](https://nips.nostr.com/24) — `display_name` vs `name` field conventions
-- [Nostr tag indexing spec](https://nips.nostr.com/1) — single-letter tags, only first value indexed
+- [transformers.js GitHub](https://github.com/huggingface/transformers.js) — WASM configuration, pipeline API, env.backends
+- [transformers.js issue #1016: 3.0.2 not compatible with onnxruntime-web 1.20.0](https://github.com/huggingface/transformers.js/issues/1016) — version mismatch confirmed
+- [transformers.js issue #860: Severe memory leak under WebGPU Whisper](https://github.com/huggingface/transformers.js/issues/860) — tensor dispose requirement
+- [transformers.js dtypes guide](https://huggingface.co/docs/transformers.js/en/guides/dtypes) — quantization tradeoffs
+- [mrm8488/bert-tiny-finetuned-sms-spam-detection (HF)](https://huggingface.co/mrm8488/bert-tiny-finetuned-sms-spam-detection) — UCI SMS training data, 5,570 samples
+- [onnx-community/bert-tiny-finetuned-sms-spam-detection-ONNX (HF)](https://huggingface.co/onnx-community/bert-tiny-finetuned-sms-spam-detection-ONNX) — ONNX variant for transformers.js
+- [Domain shift in SMS spam detection (arxiv 2501.04985)](https://arxiv.org/html/2501.04985v1) — accuracy drop from 99% → 60% under domain shift
+- [franc GitHub](https://github.com/wooorm/franc) — minimum length, short text limitations
+- [Vite issue #5979: worker code not bundled with new URL() pattern](https://github.com/vitejs/vite/issues/5979) — ?worker vs new URL() bundling behavior
+- [Vite features: Web Workers](https://vite.dev/guide/features) — ?worker suffix, type:module requirement
+- [Vite static asset handling](https://vite.dev/guide/assets) — new URL() + import.meta.url behavior
+- [React StrictMode double-mount (dev.to)](https://dev.to/pockit_tools/why-is-useeffect-running-twice-the-complete-guide-to-react-19-strict-mode-and-effect-cleanup-1n60) — useEffect runs twice in dev
+- [COOP/COEP and SharedArrayBuffer requirements](https://maddevs.io/writeups/running-ai-models-locally-in-the-browser/) — GitHub Pages cannot set these headers
+- [GitHub community: CSP on GitHub Pages](https://github.com/orgs/community/discussions/49832) — no custom HTTP headers available
 
 ---
-*Pitfalls research for: Nostr kind:30023 long-form reader SPA (React + shadcn/ui + Vite + GitHub Pages)*
-*Researched: 2026-06-05*
+*Pitfalls research for: in-browser ML content filtering, static React/Vite GitHub Pages app (Soveng v1.1)*
+*Researched: 2026-06-07*
