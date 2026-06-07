@@ -5,30 +5,39 @@ import { FilterBar } from "@/components/FilterBar"
 import { NostrProvider } from "@/context/NostrContext"
 import { useNostr } from "@/context/NostrContext"
 import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
+import { sortArticlesByReplies } from "@/lib/nostr"
 
 // AppShell reads context — must live inside NostrProvider
 function AppShell() {
-  const { status, articles, profiles, refetch } = useNostr()
+  const { status, articles, profiles, replyCounts, refetch } = useNostr()
 
   // Local UI filter state — NOT in NostrContext (D-10, Pattern 5)
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
   const [matchMode, setMatchMode] = useState<'OR' | 'AND'>('OR') // D-09: default OR
 
+  // Derived: reply-sorted articles — applied BEFORE faceting and filtering so the
+  // entire pipeline operates on the engagement-ranked list
+  const sortedArticles = useMemo(
+    () => sortArticlesByReplies(articles, replyCounts),
+    [articles, replyCounts]
+  )
+
   // Derived: static facet list for display order (D-06)
-  const facets = useMemo(() => buildFacets(articles), [articles])
+  const facets = useMemo(() => buildFacets(sortedArticles), [sortedArticles])
 
   // Derived: dynamic counts per tag (D-08)
   const dynamicCounts = useMemo(
-    () => computeDynamicCounts(articles, selectedTags, matchMode),
-    [articles, selectedTags, matchMode]
+    () => computeDynamicCounts(sortedArticles, selectedTags, matchMode),
+    [sortedArticles, selectedTags, matchMode]
   )
 
   // Derived: filtered article list (D-10 — filter is source of truth)
   // Uses the shared filterArticles helper so the OR/AND semantics stay in sync
   // with computeDynamicCounts (single source of truth — see facets.ts).
+  // filterArticles preserves input order so reply-sort is inherited.
   const filteredArticles = useMemo(
-    () => filterArticles(articles, selectedTags, matchMode),
-    [articles, selectedTags, matchMode]
+    () => filterArticles(sortedArticles, selectedTags, matchMode),
+    [sortedArticles, selectedTags, matchMode]
   )
 
   // Derived: empty-filter state (D-11) — NOT a NostrStatus variant
