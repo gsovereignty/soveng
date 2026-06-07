@@ -43,6 +43,8 @@ However, there is a serious correctness defect: the AND-mode filter predicate in
 
 ### CR-01: AND ("Match ALL") filter predicate is inverted — excludes valid articles
 
+**Status:** RESOLVED (commit 56d757c) — App.tsx now uses the shared `filterArticles` helper with correct AND semantics.
+
 **File:** `src/App.tsx:27-34`
 **Issue:**
 The filtered list is computed as:
@@ -76,6 +78,8 @@ This mirrors the AND logic already used in `computeDynamicCounts` (`facets.ts:41
 ## Warnings
 
 ### WR-01: Filter predicate (the core feature logic) has no test coverage
+
+**Status:** RESOLVED (commit 6fabee5) — predicate extracted into `filterArticles` in facets.ts with unit tests (OR, AND superset, AND missing-tag exclusion, empty selection, untagged-under-AND edge case).
 
 **File:** `src/lib/facets.test.ts` (entire), `src/App.tsx:27-34`
 **Issue:**
