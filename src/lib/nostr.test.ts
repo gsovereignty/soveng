@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile, resolveArticleStatus } from "@/lib/nostr"
+import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile, resolveArticleStatus, sortArticlesByReplies, referencedArticleCoordinates } from "@/lib/nostr"
+import type { Article } from "@/types/nostr"
 import type { Event } from "nostr-tools/core"
 
 // Minimal hand-built Event fixture factory
@@ -193,5 +194,160 @@ describe("classifyRelayClose", () => {
     expect(classifyRelayClose("connection failed")).toBe("error")
     expect(classifyRelayClose("websocket closed")).toBe("error")
     expect(classifyRelayClose("unknown")).toBe("error")
+  })
+})
+
+// Helper to build a minimal Article fixture for sort tests
+function makeArticle(coordinate: string, publishedAt: number): Article {
+  return {
+    id: `id-${coordinate}`,
+    pubkey: coordinate.split(":")[1] ?? "pubkey",
+    coordinate,
+    d: coordinate.split(":")[2] ?? "d",
+    title: `Article ${coordinate}`,
+    summary: undefined,
+    image: undefined,
+    publishedAt,
+    createdAt: publishedAt,
+    content: "",
+    hashtags: [],
+  }
+}
+
+describe("sortArticlesByReplies", () => {
+  it("sorts articles descending by reply count", () => {
+    const a1 = makeArticle("30023:pk:slug-1", 1700000000)
+    const a2 = makeArticle("30023:pk:slug-2", 1700000000)
+    const a3 = makeArticle("30023:pk:slug-3", 1700000000)
+
+    const replyCounts = new Map([
+      ["30023:pk:slug-1", 2],
+      ["30023:pk:slug-2", 5],
+      ["30023:pk:slug-3", 1],
+    ])
+
+    const sorted = sortArticlesByReplies([a1, a2, a3], replyCounts)
+    expect(sorted[0].coordinate).toBe("30023:pk:slug-2") // 5 replies
+    expect(sorted[1].coordinate).toBe("30023:pk:slug-1") // 2 replies
+    expect(sorted[2].coordinate).toBe("30023:pk:slug-3") // 1 reply
+  })
+
+  it("tie-breaks by publishedAt descending (newer first)", () => {
+    const older = makeArticle("30023:pk:slug-old", 1700000000)
+    const newer = makeArticle("30023:pk:slug-new", 1700001000)
+
+    // Both have same reply count
+    const replyCounts = new Map([
+      ["30023:pk:slug-old", 3],
+      ["30023:pk:slug-new", 3],
+    ])
+
+    const sorted = sortArticlesByReplies([older, newer], replyCounts)
+    expect(sorted[0].coordinate).toBe("30023:pk:slug-new") // newer timestamp wins tie
+    expect(sorted[1].coordinate).toBe("30023:pk:slug-old")
+  })
+
+  it("treats articles absent from replyCounts as 0 replies", () => {
+    const withReplies = makeArticle("30023:pk:slug-popular", 1700000000)
+    const noReplies = makeArticle("30023:pk:slug-quiet", 1700000000)
+
+    const replyCounts = new Map([["30023:pk:slug-popular", 3]])
+    // slug-quiet not in map — counts as 0
+
+    const sorted = sortArticlesByReplies([noReplies, withReplies], replyCounts)
+    expect(sorted[0].coordinate).toBe("30023:pk:slug-popular")
+    expect(sorted[1].coordinate).toBe("30023:pk:slug-quiet")
+  })
+
+  it("does not mutate the input array", () => {
+    const a1 = makeArticle("30023:pk:slug-1", 1700000000)
+    const a2 = makeArticle("30023:pk:slug-2", 1700000000)
+    const input = [a1, a2]
+    const original = [...input]
+    const replyCounts = new Map([["30023:pk:slug-2", 1]])
+
+    sortArticlesByReplies(input, replyCounts)
+
+    // Input order must be unchanged
+    expect(input[0].coordinate).toBe(original[0].coordinate)
+    expect(input[1].coordinate).toBe(original[1].coordinate)
+  })
+
+  it("returns all articles when replyCounts is empty (all treated as 0)", () => {
+    const a1 = makeArticle("30023:pk:slug-1", 1700001000)
+    const a2 = makeArticle("30023:pk:slug-2", 1700000000)
+    const sorted = sortArticlesByReplies([a2, a1], new Map())
+    // All have 0 replies; newer publishedAt wins tie-break
+    expect(sorted[0].coordinate).toBe("30023:pk:slug-1")
+  })
+})
+
+describe("referencedArticleCoordinates", () => {
+  it("returns 30023: a-tag values from the event", () => {
+    const event = {
+      id: "id",
+      pubkey: "pk",
+      created_at: 1700000000,
+      kind: 1,
+      tags: [
+        ["a", "30023:author:slug"],
+        ["a", "30023:author2:slug2"],
+      ],
+      content: "",
+      sig: "sig",
+    } as unknown as Event
+
+    expect(referencedArticleCoordinates(event)).toEqual([
+      "30023:author:slug",
+      "30023:author2:slug2",
+    ])
+  })
+
+  it("filters out a-tags that do not start with 30023:", () => {
+    const event = {
+      id: "id",
+      pubkey: "pk",
+      created_at: 1700000000,
+      kind: 1,
+      tags: [
+        ["a", "1:author:slug"],       // kind:1 — not an article
+        ["a", "30023:author:slug"],    // article — keep
+        ["a", "30024:author:draft"],   // different kind — not an article
+      ],
+      content: "",
+      sig: "sig",
+    } as unknown as Event
+
+    const result = referencedArticleCoordinates(event)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toBe("30023:author:slug")
+  })
+
+  it("returns empty array when no a-tags are present", () => {
+    const event = {
+      id: "id",
+      pubkey: "pk",
+      created_at: 1700000000,
+      kind: 1,
+      tags: [["p", "some-pubkey"], ["t", "nostr"]],
+      content: "",
+      sig: "sig",
+    } as unknown as Event
+
+    expect(referencedArticleCoordinates(event)).toEqual([])
+  })
+
+  it("returns empty array when event has no tags at all", () => {
+    const event = {
+      id: "id",
+      pubkey: "pk",
+      created_at: 1700000000,
+      kind: 1,
+      tags: [],
+      content: "",
+      sig: "sig",
+    } as unknown as Event
+
+    expect(referencedArticleCoordinates(event)).toEqual([])
   })
 })

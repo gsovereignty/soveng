@@ -88,6 +88,36 @@ export function resolveArticleStatus(
   return "empty"
 }
 
+/**
+ * Returns the list of `a` tag values from an event that start with "30023:"
+ * (i.e. the kind:30023 article coordinates this event references).
+ * Returns an empty array when no such tags exist.
+ */
+export function referencedArticleCoordinates(event: Event): string[] {
+  return event.tags
+    .filter(t => t[0] === "a" && t[1]?.startsWith("30023:"))
+    .map(t => t[1])
+}
+
+/**
+ * Returns a NEW array of articles sorted by reply count descending.
+ * Ties are broken by publishedAt descending (newer first).
+ * Articles absent from replyCounts are treated as 0 replies.
+ * Does not mutate the input array.
+ */
+export function sortArticlesByReplies(
+  articles: Article[],
+  replyCounts: Map<string, number>
+): Article[] {
+  return [...articles].sort((a, b) => {
+    const countA = replyCounts.get(a.coordinate) ?? 0
+    const countB = replyCounts.get(b.coordinate) ?? 0
+    if (countB !== countA) return countB - countA
+    // Tie-break: newer publishedAt first
+    return b.publishedAt - a.publishedAt
+  })
+}
+
 export function classifyRelayClose(reason: string): "clean" | "error" {
   if (
     reason.includes("eose") ||

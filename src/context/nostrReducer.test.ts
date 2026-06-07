@@ -29,8 +29,21 @@ function makeProfileEvent(pubkey: string, content: Record<string, unknown>, crea
   } as unknown as Event
 }
 
+// Minimal hand-built Event fixture factory for referencing events (kind:1 or kind:1111)
+function makeReplyEvent(id: string, aTags: string[], kind = 1): Event {
+  return {
+    id,
+    pubkey: "reply-author",
+    created_at: 1700000000,
+    kind,
+    tags: aTags.map(coord => ["a", coord]),
+    content: "reply content",
+    sig: "dummy-sig",
+  } as unknown as Event
+}
+
 describe("nostrReducer — ARTICLE_RECEIVED", () => {
-  it("appends article and records coordinate when coordinate is new and count < 21", () => {
+  it("appends article and records coordinate when coordinate is new", () => {
     const event = makeEvent("slug-1")
     const next = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event })
     expect(next.articles).toHaveLength(1)
@@ -46,7 +59,7 @@ describe("nostrReducer — ARTICLE_RECEIVED", () => {
     expect(afterSecond.articles).toHaveLength(1)
   })
 
-  it("is a no-op when articles.length === 21 (freeze guard)", () => {
+  it("appends a 22nd unique article (21-cap removed)", () => {
     // Build state with 21 articles
     let state: NostrState = initialState
     for (let i = 0; i < 21; i++) {
@@ -54,24 +67,95 @@ describe("nostrReducer — ARTICLE_RECEIVED", () => {
     }
     expect(state.articles).toHaveLength(21)
 
-    // 22nd event with a new coordinate is ignored
+    // 22nd event with a new coordinate IS accepted (cap removed)
     const extra = makeEvent("slug-extra")
-    const frozen = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: extra })
-    expect(frozen).toBe(state)
-    expect(frozen.articles).toHaveLength(21)
-    expect(frozen.seenCoords.has("30023:pubkey-aabbcc:slug-extra")).toBe(false)
+    const afterExtra = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: extra })
+    expect(afterExtra.articles).toHaveLength(22)
+    expect(afterExtra.seenCoords.has("30023:pubkey-aabbcc:slug-extra")).toBe(true)
+  })
+})
+
+describe("nostrReducer — REPLY_RECEIVED", () => {
+  it("increments replyCounts for a matched article coordinate", () => {
+    // Add an article first
+    const articleEvent = makeEvent("slug-1")
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: articleEvent })
+    expect(state.articles).toHaveLength(1)
+
+    // Reply event referencing the article coordinate
+    const coord = "30023:pubkey-aabbcc:slug-1"
+    const replyEvent = makeReplyEvent("reply-id-1", [coord])
+    state = nostrReducer(state, { type: "REPLY_RECEIVED", event: replyEvent })
+
+    expect(state.replyCounts.get(coord)).toBe(1)
   })
 
-  it("checks freeze guard BEFORE dedup guard (freeze is the outer check)", () => {
-    // Build state with 21 articles, using slug-0 as first
-    let state: NostrState = initialState
-    for (let i = 0; i < 21; i++) {
-      state = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: makeEvent(`slug-${i}`) })
+  it("increments count for multiple articles referenced by one event", () => {
+    // Add two articles
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-a") })
+    state = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-b") })
+
+    const coordA = "30023:pubkey-aabbcc:slug-a"
+    const coordB = "30023:pubkey-aabbcc:slug-b"
+
+    // Reply references both coordinates
+    const replyEvent = makeReplyEvent("reply-multi", [coordA, coordB])
+    state = nostrReducer(state, { type: "REPLY_RECEIVED", event: replyEvent })
+
+    expect(state.replyCounts.get(coordA)).toBe(1)
+    expect(state.replyCounts.get(coordB)).toBe(1)
+  })
+
+  it("ignores duplicate reply event id (seenReplyIds dedup)", () => {
+    const articleEvent = makeEvent("slug-1")
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: articleEvent })
+
+    const coord = "30023:pubkey-aabbcc:slug-1"
+    const replyEvent = makeReplyEvent("reply-id-dup", [coord])
+
+    // First dispatch
+    state = nostrReducer(state, { type: "REPLY_RECEIVED", event: replyEvent })
+    expect(state.replyCounts.get(coord)).toBe(1)
+
+    // Second dispatch with same event id — must be ignored
+    state = nostrReducer(state, { type: "REPLY_RECEIVED", event: replyEvent })
+    expect(state.replyCounts.get(coord)).toBe(1)
+  })
+
+  it("does not change replyCounts when referencing an unknown coordinate", () => {
+    // No articles in state — reply references a coordinate we did not fetch
+    const replyEvent = makeReplyEvent("reply-unknown", ["30023:stranger:other-slug"])
+    const state = nostrReducer(initialState, { type: "REPLY_RECEIVED", event: replyEvent })
+
+    expect(state.replyCounts.size).toBe(0)
+    // But event id IS recorded in seenReplyIds to prevent reprocessing
+    expect(state.seenReplyIds.has("reply-unknown")).toBe(true)
+  })
+
+  it("does not increment for non-30023 a-tags", () => {
+    const articleEvent = makeEvent("slug-1")
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: articleEvent })
+
+    // a-tag referencing a different kind (e.g. kind:1 note — not 30023)
+    const replyEvent = makeReplyEvent("reply-other-kind", ["1:pubkey-aabbcc:slug-1"])
+    state = nostrReducer(state, { type: "REPLY_RECEIVED", event: replyEvent })
+
+    expect(state.replyCounts.size).toBe(0)
+  })
+
+  it("accumulates counts across multiple distinct reply events", () => {
+    const articleEvent = makeEvent("slug-popular")
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: articleEvent })
+
+    const coord = "30023:pubkey-aabbcc:slug-popular"
+    for (let i = 0; i < 5; i++) {
+      state = nostrReducer(state, {
+        type: "REPLY_RECEIVED",
+        event: makeReplyEvent(`reply-${i}`, [coord]),
+      })
     }
-    // Re-send slug-0 (already seen) when frozen — should still be same ref (frozen check wins)
-    const resubmit = makeEvent("slug-0")
-    const result = nostrReducer(state, { type: "ARTICLE_RECEIVED", event: resubmit })
-    expect(result).toBe(state)
+
+    expect(state.replyCounts.get(coord)).toBe(5)
   })
 })
 
@@ -169,6 +253,23 @@ describe("nostrReducer — RESET", () => {
     expect(reset.profiles.size).toBe(0)
     expect(reset.status).toBe("streaming")
     expect(reset.fetchKey).toBe(prevFetchKey + 1)
+  })
+
+  it("clears replyCounts and seenReplyIds on RESET", () => {
+    // Add an article and a reply count
+    let state = nostrReducer(initialState, { type: "ARTICLE_RECEIVED", event: makeEvent("slug-1") })
+    const coord = "30023:pubkey-aabbcc:slug-1"
+    state = nostrReducer(state, {
+      type: "REPLY_RECEIVED",
+      event: makeReplyEvent("reply-id-reset", [coord]),
+    })
+    expect(state.replyCounts.get(coord)).toBe(1)
+    expect(state.seenReplyIds.has("reply-id-reset")).toBe(true)
+
+    // RESET must clear both
+    const reset = nostrReducer(state, { type: "RESET" })
+    expect(reset.replyCounts.size).toBe(0)
+    expect(reset.seenReplyIds.size).toBe(0)
   })
 
   it("Pitfall 3 regression: a coordinate that was in seenCoords before RESET is accepted after RESET", () => {
