@@ -4,7 +4,7 @@ import { ArticleList } from "@/components/ArticleList"
 import { FilterBar } from "@/components/FilterBar"
 import { NostrProvider } from "@/context/NostrContext"
 import { useNostr } from "@/context/NostrContext"
-import { buildFacets, computeDynamicCounts } from "@/lib/facets"
+import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
 
 // AppShell reads context — must live inside NostrProvider
 function AppShell() {
@@ -24,14 +24,12 @@ function AppShell() {
   )
 
   // Derived: filtered article list (D-10 — filter is source of truth)
-  const filteredArticles = useMemo(() => {
-    if (selectedTags.size === 0) return articles
-    return articles.filter(article =>
-      matchMode === 'OR'
-        ? article.hashtags.some(t => selectedTags.has(t))
-        : article.hashtags.every(t => selectedTags.has(t)) // AND: must carry ALL selected
-    )
-  }, [articles, selectedTags, matchMode])
+  // Uses the shared filterArticles helper so the OR/AND semantics stay in sync
+  // with computeDynamicCounts (single source of truth — see facets.ts).
+  const filteredArticles = useMemo(
+    () => filterArticles(articles, selectedTags, matchMode),
+    [articles, selectedTags, matchMode]
+  )
 
   // Derived: empty-filter state (D-11) — NOT a NostrStatus variant
   const isFilterEmpty = selectedTags.size > 0 && filteredArticles.length === 0
