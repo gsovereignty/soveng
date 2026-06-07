@@ -19,13 +19,12 @@ backend, served entirely as a static GitHub Pages site.
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Display each article's title, author name/picture, and timestamp — *Validated in Phase 3: article-list (terminal-styled ArticleCard + streaming ArticleList, with loading/empty/error states)*
 
 ### Active
 
 - [ ] Fetch the 21 most recent kind:30023 articles from a default set of public relays
 - [ ] Resolve each article author's name and picture from kind:0 profile metadata
-- [ ] Display each article's title, author name/picture, and timestamp
 - [ ] Show a hashtag facet list (from `t` tags) with a count per hashtag
 - [ ] Hashtags are selectable via checkboxes to filter the article list
 - [ ] AND/OR toggle controls whether selected hashtags combine inclusively or exclusively
@@ -97,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-05 after initialization*
+*Last updated: 2026-06-07 — Phase 3 (article-list) complete: real Nostr articles render end-to-end with title, author, and timestamp.*
