@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import type { Dispatch } from "react"
 import { LongFormArticle } from "nostr-tools/kinds"
 import { pool, RELAYS } from "@/lib/pool"
-import { classifyRelayClose } from "@/lib/nostr"
+import { classifyRelayClose, resolveArticleStatus } from "@/lib/nostr"
 import type { NostrAction } from "@/context/NostrContext"
 import type { RelayOutcome } from "@/types/nostr"
 
@@ -16,6 +16,15 @@ export function useArticleFetch(
   // Hold the subscription handle in a ref so the freeze watcher effect can close it
   const subRef = useRef<SubCloser | null>(null)
 
+  // CR-01: track the LIVE article count in a ref. Effect 1 only depends on
+  // [fetchKey], so any value captured in its closure (like the articleCount
+  // parameter) is frozen at effect-creation time, when no articles have arrived
+  // yet (count === 0). Articles arrive asynchronously via dispatch and update
+  // this ref on every render, so onclose/backstop read the current count here
+  // rather than a stale closure snapshot.
+  const countRef = useRef(articleCount)
+  countRef.current = articleCount
+
   // Effect 1: open subscription, track per-relay outcomes, set up backstop timer
   useEffect(() => {
     const relayOutcomes = new Map<string, RelayOutcome>()
@@ -23,6 +32,24 @@ export function useArticleFetch(
 
     // frozen flag: once set, ignore further onevent calls (safe to set before close resolves)
     let frozen = false
+
+    // CR-03: guard against double terminal dispatch. Both onclose and the
+    // backstop timer can resolve the status; whichever fires first wins, and the
+    // other becomes a no-op. Without this guard a real onclose and the backstop
+    // could dispatch conflicting statuses.
+    let resolved = false
+
+    // Resolve the final terminal status from the LIVE article count (CR-01) and
+    // the relay outcomes. Idempotent via the `resolved` guard (CR-03).
+    const resolveStatus = (allError: boolean) => {
+      if (resolved) return
+      resolved = true
+      frozen = true
+      dispatch({
+        type: "SET_STATUS",
+        status: resolveArticleStatus(countRef.current, allError),
+      })
+    }
 
     const sub = pool.subscribeMany(
       RELAYS,
@@ -41,17 +68,9 @@ export function useArticleFetch(
             const reason = reasons[i] ?? "unknown"
             relayOutcomes.set(url, classifyRelayClose(reason))
           })
-          // Resolve final status based on article count and relay outcomes
           const outcomes = Array.from(relayOutcomes.values())
           const allError = outcomes.every(o => o === "error")
-          if (articleCount > 0) {
-            dispatch({ type: "SET_STATUS", status: "done" })
-          } else if (allError) {
-            dispatch({ type: "SET_STATUS", status: "error" })
-          } else {
-            dispatch({ type: "SET_STATUS", status: "empty" })
-          }
-          frozen = true
+          resolveStatus(allError)
         },
         maxWait: 8000,
       }
@@ -59,15 +78,26 @@ export function useArticleFetch(
 
     subRef.current = sub
 
-    // D-04: 9000ms backstop timer — fires if onclose never fires (belt-and-suspenders)
+    // CR-03 / D-04: 9000ms backstop. In nostr-tools, onclose only fires once
+    // EVERY relay has reported a close — a single hung relay means onclose never
+    // fires and SubCloser.close() does not synthesize one, so without an explicit
+    // dispatch here the UI would stay stuck on `streaming` forever. The backstop
+    // therefore both closes the subscription AND forces a terminal status. It is
+    // guarded by `resolved`, so if onclose already ran this is a no-op.
     const timer = setTimeout(() => {
       sub.close("backstop timer fired")
+      // We have no per-relay reasons here; if no articles arrived treat it as a
+      // timeout with no data (empty), not error, matching the no-relay-reason path.
+      resolveStatus(false)
     }, 9000)
 
     return () => {
       clearTimeout(timer)
       sub.close("effect cleanup")
       frozen = true
+      // Mark resolved so a late onclose triggered by this cleanup-close does not
+      // dispatch a status into an unmounted/re-keyed effect.
+      resolved = true
       subRef.current = null
     }
   }, [fetchKey]) // eslint-disable-line react-hooks/exhaustive-deps
