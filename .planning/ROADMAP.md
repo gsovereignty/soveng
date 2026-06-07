@@ -90,7 +90,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A loading state is visible while the relay fetch is in progress
   4. A relay-error state (distinct from an empty-results state) is shown when all relays fail or time out
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Card primitives slice: tested formatTimestamp (D-07/D-08), shadcn Avatar (D-06), ArticleCard with title fallback + green-tint avatar/monogram + timestamp (DISP-01/02/03)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-02-PLAN.md — Integration slice: ArticleList streaming status line (D-02) + arrival-order card mapping (D-03), wired into App.tsx with boot-then-stream (D-01), preserving error/empty/retry (DISP-05)
+
 **UI hint**: yes
 
 ### Phase 4: Filtering & Inline Reader
@@ -119,5 +128,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
-| 3. Article List | 0/? | Not started | - |
+| 3. Article List | 0/2 | Not started | - |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
