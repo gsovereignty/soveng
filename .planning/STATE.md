@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 3 context gathered
-last_updated: "2026-06-07T08:29:09.464Z"
-last_activity: 2026-06-07 -- Phase 03 planning complete
+last_updated: "2026-06-07T08:44:51.285Z"
+last_activity: 2026-06-07
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Phase 02 — nostr-data-layer
+**Current focus:** Phase 03 — article-list
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-07 -- Phase 03 planning complete
+Phase: 03 (article-list) — EXECUTING
+Plan: 2 of 2
+Status: Executing — 03-01 complete, 03-02 next
+Last activity: 2026-06-07
 
-Progress: [██████████░░] 40% (Phase 1 + 02-01 + 02-02 complete)
+Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
 
 ## Performance Metrics
 
@@ -80,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-03: Plain button with terminal tokens for retry control
 - [Phase ?]: 02-03: error vs empty branch messages are distinct static literals (D-06 error/empty distinction)
 - [Phase ?]: 02-03: RESET clears seenCoords — Pitfall-3 regression guard closes stale-coord starvation
+- 03-01: radix-ui unified package (not @radix-ui/react-avatar) — current shadcn CLI consolidates Radix primitives; user verified official package
+- 03-01: npubEncode wrapped in try/catch for displayName + monogram fallback paths (T-03-04 mitigation)
+- 03-01: d-tag excluded from title fallback — not user-facing display text
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-07T08:15:41.891Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-article-list/03-CONTEXT.md
+Last session: 2026-06-07T08:42:32Z
+Stopped at: Completed 03-01-PLAN.md — ArticleCard primitives
+Resume file: .planning/phases/03-article-list/03-02-PLAN.md

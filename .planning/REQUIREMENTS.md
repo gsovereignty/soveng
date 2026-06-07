@@ -18,9 +18,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Article Display
 
-- [ ] **DISP-01**: Each article shows its title (with a sensible fallback when absent)
-- [ ] **DISP-02**: Each article shows the author's name (display_name → name → truncated npub fallback) and picture
-- [ ] **DISP-03**: Each article shows a human-readable timestamp (`published_at` when present, else `created_at`)
+- [x] **DISP-01**: Each article shows its title (with a sensible fallback when absent)
+- [x] **DISP-02**: Each article shows the author's name (display_name → name → truncated npub fallback) and picture
+- [x] **DISP-03**: Each article shows a human-readable timestamp (`published_at` when present, else `created_at`)
 - [ ] **DISP-04**: Clicking an article expands its full body rendered as sanitized Markdown inline in the list
 - [ ] **DISP-05**: App shows distinct loading, empty-filter, and relay-error states (error ≠ "no matches")
 
@@ -77,9 +77,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-04 | Phase 2 | Complete (02-01) |
 | DATA-05 | Phase 2 | Pending (02-02) |
 | DATA-06 | Phase 2 | Complete (02-01) |
-| DISP-01 | Phase 3 | Pending |
-| DISP-02 | Phase 3 | Pending |
-| DISP-03 | Phase 3 | Pending |
+| DISP-01 | Phase 3 | Complete |
+| DISP-02 | Phase 3 | Complete |
+| DISP-03 | Phase 3 | Complete |
 | DISP-04 | Phase 4 | Pending |
 | DISP-05 | Phase 3 | Pending |
 | FILT-01 | Phase 4 | Pending |

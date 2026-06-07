@@ -94,7 +94,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Card primitives slice: tested formatTimestamp (D-07/D-08), shadcn Avatar (D-06), ArticleCard with title fallback + green-tint avatar/monogram + timestamp (DISP-01/02/03)
+- [x] 03-01-PLAN.md — Card primitives slice: tested formatTimestamp (D-07/D-08), shadcn Avatar (D-06), ArticleCard with title fallback + green-tint avatar/monogram + timestamp (DISP-01/02/03)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -128,5 +128,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Deploy | 2/2 | Complete    | 2026-06-06 |
 | 2. Nostr Data Layer | 3/3 | Complete    | 2026-06-07 |
-| 3. Article List | 0/2 | Not started | - |
+| 3. Article List | 1/2 | In Progress|  |
 | 4. Filtering & Inline Reader | 0/? | Not started | - |
