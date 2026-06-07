@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DISP-02**: Each article shows the author's name (display_name → name → truncated npub fallback) and picture
 - [x] **DISP-03**: Each article shows a human-readable timestamp (`published_at` when present, else `created_at`)
 - [ ] **DISP-04**: Clicking an article expands its full body rendered as sanitized Markdown inline in the list
-- [ ] **DISP-05**: App shows distinct loading, empty-filter, and relay-error states (error ≠ "no matches")
+- [x] **DISP-05**: App shows distinct loading, empty-filter, and relay-error states (error ≠ "no matches")
 
 ### Hashtag Filtering
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISP-02 | Phase 3 | Complete |
 | DISP-03 | Phase 3 | Complete |
 | DISP-04 | Phase 4 | Pending |
-| DISP-05 | Phase 3 | Pending |
+| DISP-05 | Phase 3 | Complete |
 | FILT-01 | Phase 4 | Pending |
 | FILT-02 | Phase 4 | Pending |
 | FILT-03 | Phase 4 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-06-07T08:44:51.285Z"
+status: verifying
+stopped_at: Completed 03-02-PLAN.md — ArticleList + App wiring
+last_updated: "2026-06-07T08:50:54.705Z"
 last_activity: 2026-06-07
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 75
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 Phase: 03 (article-list) — EXECUTING
 Plan: 2 of 2
-Status: Executing — 03-01 complete, 03-02 next
+Status: Phase complete — ready for verification
 Last activity: 2026-06-07
 
 Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
@@ -54,6 +54,7 @@ Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
 
 *Updated after each plan completion*
 | Phase 02 P03 | 2min | - tasks | - files |
+| Phase 03 P02 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - 03-01: radix-ui unified package (not @radix-ui/react-avatar) — current shadcn CLI consolidates Radix primitives; user verified official package
 - 03-01: npubEncode wrapped in try/catch for displayName + monogram fallback paths (T-03-04 mitigation)
 - 03-01: d-tag excluded from title fallback — not user-facing display text
+- [Phase ?]: Boot-then-stream (D-01): BootSequence guarded by articles.length === 0 — first article swaps to live ArticleList
+- [Phase ?]: 03-02: Streaming status line (D-02): > streaming... N/21 received resolves to > ready — N articles loaded
+- [Phase ?]: 03-02: No loadingProfiles gate — profiles.get() returns undefined; ArticleCard upgrades avatar/name in place on kind:0 arrival
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-07T08:42:32Z
-Stopped at: Completed 03-01-PLAN.md — ArticleCard primitives
-Resume file: .planning/phases/03-article-list/03-02-PLAN.md
+Last session: 2026-06-07T08:50:54.702Z
+Stopped at: Completed 03-02-PLAN.md — ArticleList + App wiring
+Resume file: None
