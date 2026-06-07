@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 Phase: 04
 Plan: Not started
 Status: Executing Phase 04
-Last activity: 2026-06-07
+Last activity: 2026-06-07 - Completed quick task 260607-vqt: Don't stop at 21 events. Sort by number of replies.
 
 Progress: [█████████░] 86% (Phases 1+2 + 03-01 complete)
 
@@ -97,6 +97,12 @@ None yet.
 ### Blockers/Concerns
 
 - Phase 2 planning flag: relay EOSE timeout tuning and batch kind:0 query limits need validation against live relays (see research SUMMARY.md)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260607-vqt | Don't stop at 21 events. Sort by number of replies. | 2026-06-07 | 0bfd4b2 | [260607-vqt-don-t-stop-at-21-events-sort-by-number-o](./quick/260607-vqt-don-t-stop-at-21-events-sort-by-number-o/) |
 
 ## Deferred Items
 
