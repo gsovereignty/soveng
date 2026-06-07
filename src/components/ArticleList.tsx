@@ -1,5 +1,7 @@
+import { useState, useEffect, useMemo } from "react"
 import type { Article, Profile, NostrStatus } from "@/types/nostr"
 import { ArticleCard } from "@/components/ArticleCard"
+import { Accordion } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
 
 interface ArticleListProps {
@@ -9,6 +11,18 @@ interface ArticleListProps {
 }
 
 export function ArticleList({ articles, profiles, status }: ArticleListProps) {
+  // D-03: single open accordion — controlled value
+  const [openId, setOpenId] = useState<string>('')
+
+  // D-10: when filter changes and the open article is excluded from articles,
+  // collapse it so nothing is orphaned open
+  const articleIds = useMemo(() => new Set(articles.map(a => a.id)), [articles])
+  useEffect(() => {
+    if (openId && !articleIds.has(openId)) {
+      setOpenId('')
+    }
+  }, [articleIds, openId])
+
   return (
     <div className={cn("w-full max-w-2xl flex flex-col")}>
       {/* Slim streaming status line (D-02) — updates live while streaming, resolves when done */}
@@ -24,8 +38,14 @@ export function ArticleList({ articles, profiles, status }: ArticleListProps) {
         )}
       </header>
 
-      {/* Article list — arrival order, no re-sort (D-03) */}
-      <div className="flex flex-col gap-2">
+      {/* Article accordion — single open (D-03), controlled state with D-10 clear effect */}
+      <Accordion
+        type="single"
+        collapsible
+        value={openId}
+        onValueChange={setOpenId}
+        className="flex flex-col gap-2"
+      >
         {articles.map((article) => (
           <ArticleCard
             key={article.id}
@@ -33,7 +53,7 @@ export function ArticleList({ articles, profiles, status }: ArticleListProps) {
             profile={profiles.get(article.pubkey)}
           />
         ))}
-      </div>
+      </Accordion>
     </div>
   )
 }
