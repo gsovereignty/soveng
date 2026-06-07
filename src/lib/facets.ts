@@ -45,3 +45,22 @@ export function computeDynamicCounts(
   }
   return counts
 }
+
+/**
+ * Filter articles by the current tag selection and match mode (D-10).
+ * Empty selection returns all articles unchanged.
+ * OR mode: article carries at least one selected tag.
+ * AND mode: article carries every selected tag (mirrors computeDynamicCounts AND semantics).
+ */
+export function filterArticles(
+  articles: Article[],
+  selectedTags: Set<string>,
+  matchMode: 'OR' | 'AND',
+): Article[] {
+  if (selectedTags.size === 0) return articles
+  return articles.filter(a =>
+    matchMode === 'OR'
+      ? a.hashtags.some(t => selectedTags.has(t))
+      : [...selectedTags].every(t => a.hashtags.includes(t)),
+  )
+}

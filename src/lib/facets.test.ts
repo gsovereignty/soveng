@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { buildFacets, computeDynamicCounts } from "@/lib/facets"
+import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
 import type { Article } from "@/types/nostr"
 
 // Minimal Article fixture — only the hashtags field matters for these pure helpers
@@ -140,5 +140,49 @@ describe("computeDynamicCounts", () => {
   it("returns empty map for empty articles", () => {
     const counts = computeDynamicCounts([], new Set(), "OR")
     expect(counts.size).toBe(0)
+  })
+})
+
+describe("filterArticles", () => {
+  it("returns all articles when selection is empty (OR)", () => {
+    const articles = [makeArticle(["nostr"]), makeArticle(["bitcoin"])]
+    expect(filterArticles(articles, new Set(), "OR")).toEqual(articles)
+  })
+
+  it("returns all articles when selection is empty (AND)", () => {
+    const articles = [makeArticle(["nostr"]), makeArticle(["bitcoin"])]
+    expect(filterArticles(articles, new Set(), "AND")).toEqual(articles)
+  })
+
+  it("OR mode: includes articles carrying at least one selected tag", () => {
+    const a1 = makeArticle(["nostr", "bitcoin"], "a1")
+    const a2 = makeArticle(["lightning"], "a2")
+    const a3 = makeArticle(["bitcoin"], "a3")
+    const result = filterArticles([a1, a2, a3], new Set(["bitcoin"]), "OR")
+    expect(result).toEqual([a1, a3])
+  })
+
+  it("AND mode: article carrying a superset of selected tags matches", () => {
+    // selected = {nostr}; article has nostr + bitcoin — must match (carries every selected tag)
+    const a1 = makeArticle(["nostr", "bitcoin"], "a1")
+    const result = filterArticles([a1], new Set(["nostr"]), "AND")
+    expect(result).toEqual([a1])
+  })
+
+  it("AND mode: article missing a selected tag is excluded", () => {
+    // selected = {nostr, lightning}; article has nostr + bitcoin (missing lightning) — excluded
+    const a1 = makeArticle(["nostr", "bitcoin"], "a1")
+    const a2 = makeArticle(["nostr", "lightning"], "a2")
+    const result = filterArticles([a1, a2], new Set(["nostr", "lightning"]), "AND")
+    expect(result).toEqual([a2])
+  })
+
+  it("AND mode: untagged article does NOT match a non-empty selection", () => {
+    // edge case from CR-01: an article with no hashtags must be excluded under AND
+    const tagged = makeArticle(["nostr"], "tagged")
+    const untagged = makeArticle([], "untagged")
+    const result = filterArticles([tagged, untagged], new Set(["nostr"]), "AND")
+    expect(result).toEqual([tagged])
+    expect(result).not.toContain(untagged)
   })
 })
