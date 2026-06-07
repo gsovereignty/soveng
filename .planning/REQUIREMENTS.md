@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-02**: App fetches kind:30023 events and presents the 21 most recent (newest first) — relaxed to first-21-to-arrive per D-02
 - [x] **DATA-03**: App dedupes addressable events by `kind:pubkey:d` coordinate — first-arriving wins per D-03
 - [x] **DATA-04**: App applies an EOSE/response timeout so an unresponsive relay never blocks rendering
-- [ ] **DATA-05**: App resolves author display data by batch-fetching kind:0 profiles for all article authors in a single subscription
+- [x] **DATA-05**: App resolves author display data by batch-fetching kind:0 profiles for all article authors in a single subscription
 - [x] **DATA-06**: App parses NIP-23 metadata with fallbacks for missing optional tags (`title`, `summary`, `image`, `published_at`)
 
 ### Article Display
