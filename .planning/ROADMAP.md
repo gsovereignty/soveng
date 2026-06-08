@@ -53,8 +53,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-03-PLAN.md — useClassification hook: gates-first orchestration, per-id score cache, instant re-thresholding, fail-open
-- [ ] 05-04-PLAN.md — Filter controls UI: shadcn Switch/Slider/Progress/Badge + ContentFilterControls component
+- [x] 05-03-PLAN.md — useClassification hook: gates-first orchestration, per-id score cache, instant re-thresholding, fail-open
+- [x] 05-04-PLAN.md — Filter controls UI: shadcn Switch/Slider/Progress/Badge + ContentFilterControls component
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
