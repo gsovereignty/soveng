@@ -15,15 +15,13 @@ It's a static site, built with Vite and deployable to GitHub Pages.
 Discover and read recent Nostr long-form articles, filtered by hashtag — with zero
 backend, served entirely as a static GitHub Pages site.
 
-## Current Milestone: v1.1 Local ML Content Filtering
+## Current State
 
-**Goal:** Automatically hide spam and non-English articles from the reading list using in-browser ML — keeping the zero-backend, works-for-every-visitor property.
+**Shipped:** v1.1 Local ML Content Filtering (2026-06-08) — on top of v1.0 MVP (2026-06-07). Live at https://gsovereignty.github.io/soveng/.
 
-**Target features:**
-- In-browser spam classification via transformers.js (small ONNX model, WASM/WebGPU)
-- Lightweight English-language detection via a small library (e.g. franc) — no model download
-- Filtered articles (spam OR non-English) hidden entirely from the list
-- Filtering on by default; classification runs after fetch as articles render, fail-open on error
+The reader now hides spam, non-English, and sub-500-word articles using in-browser ML — a transformers.js ONNX spam classifier and a franc-min language gate, running off the main thread in a Web Worker, fail-open throughout. User-facing controls (on-by-default toggle, model download progress, hidden-article count, spam-confidence slider) ship alongside, with the zero-backend, works-for-every-visitor property intact.
+
+**Next milestone goals (TBD via `/gsd-new-milestone`):** candidate work includes spam-quality follow-ups (domain-tuned model SPAM-05, "why filtered" disclosure SPAM-06), a pubkey mute list (MUTE-01), and the carried-forward v2 enrichment/config items. Also: reconcile the DATA-02 "21 most recent" text with shipped uncapped/reply-sorted behavior.
 
 ## Requirements
 
@@ -38,10 +36,15 @@ backend, served entirely as a static GitHub Pages site.
 - [x] Resolve each article author's name and picture from kind:0 profile metadata — *Validated in Phase 2: nostr-data-layer (batched single kind:0 subscription, newest-wins profile Map)* — v1.0
 - [x] Terminal-styled UI built with React + shadcn/ui (monospace type, terminal palette) — *Validated in Phase 1: scaffold-deploy (green-phosphor OKLCH, CRT chrome, JetBrains Mono)* — v1.0
 - [x] Builds to static assets and deploys to GitHub Pages — *Validated in Phase 1: scaffold-deploy (Vite base /soveng/, GitHub Actions Pages deploy, SPA 404 fallback)* — v1.0
+- [x] Hide non-English articles via in-browser language detection (franc-min, fail-open) — *Validated in Phase 5: ML Content Filtering (LANG-01/02)* — v1.1
+- [x] Hide spam via an in-browser ML classifier (transformers.js ONNX) at a conservative ~0.90 threshold, fail-open — *Validated in Phase 5 (SPAM-01→04; GO verdict pinned 0.90)* — v1.1
+- [x] Hide sub-500-word articles via an always-on length gate — *Validated in Phase 5 (LEN-01)* — v1.1
+- [x] Run classification off the main thread in a Web Worker, under the /soveng/ base path, cached per event id, progressive hide-on-arrival — *Validated in Phase 5 (MLINF-01→03)* — v1.1
+- [x] User-facing filter controls — on-by-default toggle (persisted), download progress, hidden count, spam-confidence slider (slider-at-max recovers false positives) — *Validated in Phase 5 (CTRL-01→06)* — v1.1
 
 ### Active
 
-*v1.0 shipped — all v1 requirements validated. Next-milestone requirements TBD via `/gsd-new-milestone`. Candidate v2 work: per-relay status (ENRICH-03), summary/image on cards (ENRICH-01), clickable tag pills (ENRICH-02), user-configurable relays (CONF-01), adjustable feed length (CONF-02). Also: reconcile DATA-02 text with the shipped uncapped/reply-sorted behavior.*
+*v1.0 + v1.1 shipped — all requirements validated. Next-milestone requirements TBD via `/gsd-new-milestone`. Candidates: domain-tuned spam model (SPAM-05), per-article "why filtered" disclosure (SPAM-06), pubkey mute list (MUTE-01); carried v2 work — per-relay status (ENRICH-03), summary/image on cards (ENRICH-01), clickable tag pills (ENRICH-02), user-configurable relays (CONF-01), adjustable feed length (CONF-02). Also: reconcile DATA-02 text with the shipped uncapped/reply-sorted behavior.*
 
 ### Out of Scope
 
@@ -51,6 +54,9 @@ backend, served entirely as a static GitHub Pages site.
 - Pagination / infinite scroll beyond the 21 articles — fixed-size curated view
 - User-configurable relays (v1) — ships with a fixed default relay set
 - Server / backend / database — static site only, all fetching happens client-side
+- Server-side / build-time classification (v1.1) — violates zero-backend; all ML runs in the visitor's browser
+- Multi-language support beyond English (v1.1) — the language gate is a binary is-English test
+- Per-article spam-score badges on visible articles (v1.1) — clutters the reading view; hidden-count + slider cover transparency
 
 ## Context
 
@@ -65,10 +71,15 @@ backend, served entirely as a static GitHub Pages site.
   any checked tag.
 - **Deployment target:** GitHub Pages. Vite build output served as static files;
   requires correct `base` path config and a GitHub Actions deploy workflow.
-- **Current state (after v1.0):** Shipped and live at https://gsovereignty.github.io/soveng/.
-  ~2,436 LOC TypeScript/TSX across 4 phases / 9 plans. Stack: Vite 8 + React 19 + TS 5,
-  shadcn/ui (new-york, Tailwind v4), nostr-tools 2.23.5 (SimplePool, subpath imports),
-  react-markdown + remark-gfm + rehype-sanitize, Vitest for pure helpers/reducer.
+- **Current state (after v1.1):** Shipped and live at https://gsovereignty.github.io/soveng/.
+  v1.1 added in-browser ML content filtering across 1 phase / 6 plans (41 files, +7,583 / −632).
+  Stack additions: @huggingface/transformers (ONNX spam classifier in a Web Worker singleton,
+  numThreads=1, version-pinned wasmPaths CDN), franc-min (language gate). Base stack unchanged:
+  Vite 8 + React 19 + TS 5, shadcn/ui (new-york, Tailwind v4), nostr-tools 2.23.5 (SimplePool,
+  subpath imports), react-markdown + remark-gfm + rehype-sanitize, Vitest for pure helpers/reducer/hook.
+- **Content-filtering model:** classification runs only in the browser, off the main thread,
+  fail-open everywhere; spam threshold pinned at 0.90 after a live-URL GO verdict. The 500-word
+  length gate is always on; spam + language filtering is on-by-default and user-toggleable.
 
 ## Constraints
 
@@ -97,6 +108,12 @@ backend, served entirely as a static GitHub Pages site.
 | rehype-sanitize, never rehype-raw | XSS safety on untrusted article bodies | ✓ Good — links re-flagged target=_blank post-sanitize |
 | Top filter bar over left/right sidebar (D-01) | Simpler layout that still satisfies FILT-01/02 | ✓ Good — presentation delta, scope unchanged |
 | Lift 21-cap, sort by reply count (260607-vqt) | Surface more-discussed articles; fixed cap felt arbitrary | ⚠️ Revisit — diverges from documented "21 most recent, newest first"; reconcile requirement text next milestone |
+| In-browser ML only (no backend classification) — v1.1 | Preserve zero-backend, works-for-every-visitor property | ✓ Good — transformers.js ONNX in a Web Worker, verified on live /soveng/ |
+| SPAM_THRESHOLD = 0.90 (not SMS-model 0.50) — v1.1 | Domain shift from SMS training data; avoid over-filtering crypto/Nostr articles | ✓ Good — live GO verdict confirmed legitimate articles not over-filtered; pinned with validation comment |
+| Worker + ONNX as module-level singleton, numThreads=1, pinned wasmPaths — v1.1 | StrictMode-safe; works under /soveng/ base path with no SAB/wasm-404 issues | ✓ Good — all 5 ML-on-Pages pitfalls cleared on live URL |
+| Cheap-gates-first, score-cache + instant re-threshold — v1.1 | Avoid inference on cheaply-cut articles; slider re-thresholds without re-running the model | ✓ Good — single visibleArticles memo, surgical integration |
+| Fold Phases 6 & 7 into Phase 5 — v1.1 | Filter feature + controls ship as one coherent slice | ✓ Good — single-phase milestone, no orphaned scope |
+| CTRL-06 folded into the spam-confidence slider — v1.1 | Slider-at-max disables spam filtering, surfacing false positives — no separate "show hidden" control needed | ✓ Good — one fewer control, recovery still possible |
 
 ## Evolution
 
@@ -116,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-07 after v1.0 milestone — all 4 phases shipped (scaffold/deploy, data layer, article list, filtering + inline reader). All 18 v1 requirements validated. Live at https://gsovereignty.github.io/soveng/.*
+*Last updated: 2026-06-08 after v1.1 milestone — Phase 5 shipped in-browser ML content filtering (spam + language + length, fail-open, with user controls). All 16 v1.1 requirements validated (CTRL-06 reinterpreted into the slider). Live at https://gsovereignty.github.io/soveng/.*

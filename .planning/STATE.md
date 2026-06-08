@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Local ML Content Filtering
-status: paused
-stopped_at: Plan 05-05 complete — App.tsx integration (Wave 3 done)
-last_updated: "2026-06-08T07:30:19.303Z"
+status: shipped
+stopped_at: v1.1 milestone complete — archived and tagged 2026-06-08
+last_updated: "2026-06-08T15:31:00.000Z"
 last_activity: 2026-06-08
 progress:
   total_phases: 1
@@ -18,21 +18,21 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-07)
+See: .planning/PROJECT.md (updated 2026-06-08)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Phase 05 — ml-pipeline-infrastructure
+**Current focus:** Planning next milestone (v1.2 / next) — run `/gsd-new-milestone`
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
-Status: PAUSED at 05-06 blocking human-verify checkpoint. Task 1 (dev-only spam-score logging, commit f352e1e) done + build green. Awaiting: user pushes origin/main → GitHub Actions deploy → live-URL smoke test on https://gsovereignty.github.io/soveng/ (5 observations: .wasm 404s, SharedArrayBuffer warning, ORT version-pin match = 1.26.0-dev.20260416-b7804b056c, 20+ real article score range, fail-open) → GO/NO-GO verdict. Task 3 (pin SPAM_THRESHOLD or language-only fallback + redeploy) runs on resume after verdict.
+Phase: — (between milestones)
+Plan: —
+Status: ✅ v1.1 Local ML Content Filtering SHIPPED 2026-06-08 — archived (ROADMAP + REQUIREMENTS) and tagged v1.1. Live at https://gsovereignty.github.io/soveng/. GO verdict from 05-06 pinned SPAM_THRESHOLD = 0.90.
 Last activity: 2026-06-08
 
 ```
-v1.1 progress: [░░░░░░░░░░] 0% (0/1 phases)
-Phase 5 [░░░░░░░░░░] Not started (absorbs former Phases 6 & 7)
+v1.0 MVP                        [██████████] SHIPPED 2026-06-07
+v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
 ```
 
 ## Performance Metrics
@@ -105,8 +105,14 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Resolve open product decision before Phase 5 planning: inspect real Nostr article spam scores against live relays. If false positives appear above 0.90 threshold, consider shipping language-detection-only for v1.1 and deferring spam ML to v1.2.
-- Derive wasmPaths CDN version pin from node_modules/onnxruntime-web/package.json after npm install @huggingface/transformers.
+- (Resolved 2026-06-08) Spam-score validation against live relays — done in 05-06: GO verdict, no over-filtering at 0.90.
+- (Resolved 2026-06-08) wasmPaths CDN version pin — derived in 05-02: 1.26.0-dev.20260416-b7804b056c.
+
+### Open for next milestone
+
+- SPAM-05: domain-tuned spam model if false-positive rates stay high after launch feedback.
+- SPAM-06: per-article "why filtered" disclosure.
+- MUTE-01: pubkey denylist / mute list.
 
 ### Blockers/Concerns
 
@@ -127,6 +133,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-08T06:47:33Z
-Stopped at: Plan 05-05 complete — App.tsx integration (Wave 3 done)
-Resume file: .planning/phases/05-ml-pipeline-infrastructure/05-06-PLAN.md
+Last session: 2026-06-08
+Stopped at: v1.1 milestone complete — archived and tagged v1.1
+Resume: run `/gsd-new-milestone` to scope the next milestone

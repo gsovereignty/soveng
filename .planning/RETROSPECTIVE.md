@@ -43,6 +43,50 @@
 
 ---
 
+## Milestone: v1.1 — Local ML Content Filtering
+
+**Shipped:** 2026-06-08
+**Phases:** 1 | **Plans:** 6 | **Timeline:** 2 days (2026-06-07 → 2026-06-08)
+
+### What Was Built
+- In-browser spam filtering via a transformers.js ONNX classifier in a module-level Web Worker singleton (numThreads=1, version-pinned wasmPaths CDN, CI-verifiable via check:ort-version)
+- franc-min English-language gate + always-on 500-word length gate, fronted by a fail-open `isHidden` allowlist and a `ClassificationLabel` contract (10 Vitest tests)
+- useClassification hook: cheap-gates-first orchestration, per-event-id raw-score cache, instant slider re-thresholding without re-inference, fail-open on every path
+- ContentFilterControls from shadcn primitives only (Switch/Slider/Progress/Badge) — toggle, 0.50–0.99 slider, download progress, hidden-count badge, model-failure notice
+- Surgical App.tsx integration via a single `visibleArticles` memo; evidence-based validation on the live /soveng/ URL with a GO verdict pinning SPAM_THRESHOLD = 0.90
+
+### What Worked
+- **Cheap-gates-first pipeline** — running the franc language gate and 500-word length gate before ONNX inference avoided spinning up the model for cheaply-cut articles, and kept the hot path synchronous.
+- **Score cache + threshold-as-parameter** — caching raw ONNX scores per event id and passing the threshold into the hook let the slider re-threshold instantly with zero re-inference; the integration reduced to one memo.
+- **Module-level worker singleton mirroring pool.ts** — reusing the established v1.0 singleton pattern made the Worker StrictMode-safe with no new conceptual surface.
+- **Validate on the deployed URL, not localhost** — the mandated 05-06 live smoke test (wasm 404s, SharedArrayBuffer, ORT version pin, real score range, fail-open) caught the class of problems that only appear under the /soveng/ base path.
+- **Folding Phases 6 & 7 into Phase 5 early** — deciding up front to ship the feature and its controls as one slice avoided orphaned half-features.
+
+### What Was Inefficient
+- **STATE.md drifted again** — the YAML and "Current Position" still read `status: paused` / "Plan 05-05 complete" at milestone close, even though the phase had been executed, verified, and committed (da1d4fd). Same lesson as v1.0, not yet internalized.
+- **No milestone audit run** — closed (as in v1.0) on all-requirements-checked + all-summaries-present + a live GO verdict, rather than a `/gsd-audit-milestone` pass. Two milestones running.
+- **CTRL-06 left as `[ ]` after reinterpretation** — the requirement was folded into the slider during discussion but its checkbox was never updated, so it surfaced as an apparent gap at close.
+
+### Patterns Established
+- Off-main-thread ML as a module-level Web Worker singleton; never instantiate inside a component/effect.
+- External CDN asset versions (ONNX wasmPaths) pinned to the exact transitive dependency version and guarded by a `check:*` npm script so drift fails CI.
+- Fail-open by construction for content gating — `isHidden` is an allowlist-of-hides; unknown/error/undetermined labels always show.
+- Expensive-classification results cached per stable id, with the user-tunable threshold kept as a pure parameter so re-thresholding never re-runs the model.
+- A single insertion-point memo (`visibleArticles`) upstream of all derived memos when adding a filter to an existing pipeline.
+
+### Key Lessons
+1. **Keep STATE.md honest at phase/milestone close** — this is now a repeated finding; the resume anchor is worth a 30-second update at every boundary.
+2. **Run `/gsd-audit-milestone` before close** — flagged in v1.0 and skipped again; the audit is the intended guard against checkbox-driven false confidence.
+3. **Update requirement checkboxes the moment scope is reinterpreted** — CTRL-06's stale `[ ]` mirrors v1.0's stale DATA-02 text; reconcile docs in the same change that changes the decision.
+4. **Validate browser-ML constraints on the real deployment target** — base-path, wasm hosting, and SharedArrayBuffer issues are invisible on localhost.
+
+### Cost Observations
+- Model mix: not tracked this milestone.
+- Sessions: spanned 2 days; a human-verify checkpoint (05-06) paused execution for the live-URL smoke test before the GO/NO-GO verdict.
+- Notable: TDD on the synchronous gates + hook again kept rework low; most deviations (tsc errors post-merge, package-lock native bindings) were mechanical and caught at build time.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -50,13 +94,18 @@
 | Milestone | Phases | Key Change |
 |-----------|--------|------------|
 | v1.0 | 4 | Initial process — vertical MVP slices, deploy-first, data-layer isolation |
+| v1.1 | 1 | Single-phase feature milestone — folded planned sub-phases into one slice; added a human-verify checkpoint for live-URL ML validation |
 
 ### Cumulative Quality
 
 | Milestone | Source LOC | Tests | Notable |
 |-----------|-----------|-------|---------|
 | v1.0 | ~2,436 TS/TSX | Vitest on pure helpers + reducer (formatTimestamp 39, facets, parse*) | Zero new UI components built from scratch — shadcn primitives only |
+| v1.1 | +~7,583/−632 across 41 files | Vitest on language gates (10) + useClassification hook | ML kept fully client-side; off-main-thread Worker singleton; shadcn primitives only |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. *(Pending second milestone to cross-validate.)*
+1. **Keep STATE.md honest at phase/milestone boundaries** — drifted in both v1.0 and v1.1; the resume anchor decays without a deliberate close-out update.
+2. **Run the milestone audit before closing** — skipped in both v1.0 and v1.1; checkbox completeness is not the same as verified coverage.
+3. **Reconcile docs the moment a decision changes** — v1.0's stale DATA-02 text and v1.1's stale CTRL-06 checkbox are the same failure mode.
+4. **Reusing established structural patterns (module-level singletons, pure-function TDD) keeps integration cheap** — held across both milestones.
