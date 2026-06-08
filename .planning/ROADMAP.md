@@ -45,14 +45,23 @@ Full phase details archived in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROAD
   6. A spam-confidence slider (range 0.50–0.99, default ~0.90) re-evaluates the stored scores immediately without re-running inference; at its maximum the spam filter is effectively disabled, surfacing any false positives — this replaces a separate "show hidden" control
 
 **Plans**: 6 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 05-01-PLAN.md — ClassificationLabel type + franc-min language gate + 500-word length gate (pure, tested)
 - [ ] 05-02-PLAN.md — ONNX Web Worker infra: transformers install, Vite config, numThreads=1 + version-pinned wasmPaths, singleton getter
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-03-PLAN.md — useClassification hook: gates-first orchestration, per-id score cache, instant re-thresholding, fail-open
 - [ ] 05-04-PLAN.md — Filter controls UI: shadcn Switch/Slider/Progress/Badge + ContentFilterControls component
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 05-05-PLAN.md — App.tsx integration: visibleArticles memo, downstream memos switched, on-by-default persisted toggle + slider
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 05-06-PLAN.md — D-04 dev-console score validation + live /soveng/ deployment smoke test + spam go/no-go (checkpoint)
 
 **UI hint**: yes
-
