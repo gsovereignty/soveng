@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-06-07)
 ## Current Position
 
 Phase: 05 (ml-pipeline-infrastructure) — EXECUTING
-Plan: 6 of 6
-Status: Executing Phase 05 — Wave 3 complete, Wave 4 next (05-06: D-04 validation + deployment smoke test)
-Last activity: 2026-06-08 -- Plan 05-05 complete (App.tsx integration)
+Plan: 6 of 6 (05-06 IN PROGRESS — 1/3 tasks)
+Status: PAUSED at 05-06 blocking human-verify checkpoint. Task 1 (dev-only spam-score logging, commit f352e1e) done + build green. Awaiting: user pushes origin/main → GitHub Actions deploy → live-URL smoke test on https://gsovereignty.github.io/soveng/ (5 observations: .wasm 404s, SharedArrayBuffer warning, ORT version-pin match = 1.26.0-dev.20260416-b7804b056c, 20+ real article score range, fail-open) → GO/NO-GO verdict. Task 3 (pin SPAM_THRESHOLD or language-only fallback + redeploy) runs on resume after verdict.
+Last activity: 2026-06-08 -- Plan 05-06 Task 1 complete; paused at human-verify checkpoint
 
 ```
 v1.1 progress: [░░░░░░░░░░] 0% (0/1 phases)
