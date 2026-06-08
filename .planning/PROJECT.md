@@ -15,13 +15,27 @@ It's a static site, built with Vite and deployable to GitHub Pages.
 Discover and read recent Nostr long-form articles, filtered by hashtag — with zero
 backend, served entirely as a static GitHub Pages site.
 
+## Current Milestone: v1.2 Email-Client Layout
+
+**Goal:** Replace the scrolling list + inline-accordion reader with a 2-pane, email-client-style master-detail layout — select an article in the sidebar, read it in a dedicated reading pane.
+
+**Target features:**
+- 2-pane layout — sidebar (article list) + main reading pane, terminal aesthetic preserved (use existing shadcn `Sidebar`/`Resizable`, don't build new components)
+- Sidebar holds the article list AND all controls — hashtag facets, AND/OR toggle, and the v1.1 ML filter controls (spam toggle, confidence slider, download progress, hidden count)
+- Richer sidebar rows (ENRICH-01) — show each article's summary/image (from kind:30023 `summary`/`image` tags, with fallbacks) so the list reads like an inbox
+- Dedicated reading pane — replaces the inline accordion; terminal-styled placeholder ("> select an article to read") when nothing is selected
+- Mobile: list ↔ reader swap — full-screen list, tap to open full-screen reader with a "‹ back" control
+- Deep-linkable selection — selected article reflected in the URL (event/naddr id) so reads are shareable and the back button works
+
+**Explicitly deferred (NOT in v1.2):** DATA-02 doc/behavior reconcile, clickable tag pills (ENRICH-02), domain-tuned spam model (SPAM-05), "why filtered" disclosure (SPAM-06), pubkey mute list (MUTE-01), user-configurable relays (CONF-01), adjustable feed length (CONF-02), per-relay status (ENRICH-03).
+
 ## Current State
 
 **Shipped:** v1.1 Local ML Content Filtering (2026-06-08) — on top of v1.0 MVP (2026-06-07). Live at https://gsovereignty.github.io/soveng/.
 
 The reader now hides spam, non-English, and sub-500-word articles using in-browser ML — a transformers.js ONNX spam classifier and a franc-min language gate, running off the main thread in a Web Worker, fail-open throughout. User-facing controls (on-by-default toggle, model download progress, hidden-article count, spam-confidence slider) ship alongside, with the zero-backend, works-for-every-visitor property intact.
 
-**Next milestone goals (TBD via `/gsd-new-milestone`):** candidate work includes spam-quality follow-ups (domain-tuned model SPAM-05, "why filtered" disclosure SPAM-06), a pubkey mute list (MUTE-01), and the carried-forward v2 enrichment/config items. Also: reconcile the DATA-02 "21 most recent" text with shipped uncapped/reply-sorted behavior.
+**In progress:** v1.2 Email-Client Layout (started 2026-06-08) — see Current Milestone above. Reworks the presentation layer (2-pane master-detail, deep-linking, richer sidebar rows) without touching the protocol/data layer.
 
 ## Requirements
 
@@ -44,7 +58,9 @@ The reader now hides spam, non-English, and sub-500-word articles using in-brows
 
 ### Active
 
-*v1.0 + v1.1 shipped — all requirements validated. Next-milestone requirements TBD via `/gsd-new-milestone`. Candidates: domain-tuned spam model (SPAM-05), per-article "why filtered" disclosure (SPAM-06), pubkey mute list (MUTE-01); carried v2 work — per-relay status (ENRICH-03), summary/image on cards (ENRICH-01), clickable tag pills (ENRICH-02), user-configurable relays (CONF-01), adjustable feed length (CONF-02). Also: reconcile DATA-02 text with the shipped uncapped/reply-sorted behavior.*
+*v1.0 + v1.1 shipped — all requirements validated. **v1.2 Email-Client Layout** requirements being defined (see Current Milestone): 2-pane master-detail layout, sidebar list + controls, richer sidebar rows (ENRICH-01), dedicated reading pane, mobile list↔reader swap, deep-linkable selection. Detailed REQ-IDs in REQUIREMENTS.md.*
+
+*Deferred to later milestones: domain-tuned spam model (SPAM-05), "why filtered" disclosure (SPAM-06), pubkey mute list (MUTE-01), per-relay status (ENRICH-03), clickable tag pills (ENRICH-02), user-configurable relays (CONF-01), adjustable feed length (CONF-02). Also: reconcile DATA-02 text with the shipped uncapped/reply-sorted behavior.*
 
 ### Out of Scope
 
@@ -133,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-08 after v1.1 milestone — Phase 5 shipped in-browser ML content filtering (spam + language + length, fail-open, with user controls). All 16 v1.1 requirements validated (CTRL-06 reinterpreted into the slider). Live at https://gsovereignty.github.io/soveng/.*
+*Last updated: 2026-06-08 — started v1.2 Email-Client Layout milestone. Goal: 2-pane master-detail layout (sidebar list + dedicated reading pane) replacing the inline-accordion reader, with deep-linkable selection and richer inbox-style sidebar rows (ENRICH-01). Presentation-layer rework; protocol/data layer unchanged.*

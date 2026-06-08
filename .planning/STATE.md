@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Local ML Content Filtering
-status: shipped
-stopped_at: v1.1 milestone complete — archived and tagged 2026-06-08
-last_updated: "2026-06-08T15:31:00.000Z"
+milestone: v1.2
+milestone_name: Email-Client Layout
+status: planning
+stopped_at: v1.2 milestone started — defining requirements
+last_updated: "2026-06-08T08:00:22.194Z"
 last_activity: 2026-06-08
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,18 +21,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-08)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** Planning next milestone (v1.2 / next) — run `/gsd-new-milestone`
+**Current focus:** v1.2 Email-Client Layout — defining requirements
 
 ## Current Position
 
-Phase: — (between milestones)
+Phase: Not started (defining requirements)
 Plan: —
-Status: ✅ v1.1 Local ML Content Filtering SHIPPED 2026-06-08 — archived (ROADMAP + REQUIREMENTS) and tagged v1.1. Live at https://gsovereignty.github.io/soveng/. GO verdict from 05-06 pinned SPAM_THRESHOLD = 0.90.
-Last activity: 2026-06-08
+Status: Defining requirements
+Last activity: 2026-06-08 — Milestone v1.2 Email-Client Layout started
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
 v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
+v1.2 Email-Client Layout        [░░░░░░░░░░] PLANNING  2026-06-08
 ```
 
 ## Performance Metrics
