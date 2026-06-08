@@ -21,7 +21,7 @@ Full phase details archived in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROAD
 
 ### v1.1 Local ML Content Filtering
 
-- [ ] **Phase 5: ML Content Filtering** — In-browser spam + language + length filter with user-facing controls (toggle, progress, count, confidence slider), deployed and verified on the live /soveng/ URL
+- [x] **Phase 5: ML Content Filtering** — In-browser spam + language + length filter with user-facing controls (toggle, progress, count, confidence slider), deployed and verified on the live /soveng/ URL (completed 2026-06-08)
 
 ## Phase Details
 
@@ -62,6 +62,6 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 05-06-PLAN.md — D-04 dev-console score validation + live /soveng/ deployment smoke test + spam go/no-go (checkpoint)
+- [x] 05-06-PLAN.md — D-04 dev-console score validation + live /soveng/ deployment smoke test + spam go/no-go (checkpoint)
 
 **UI hint**: yes

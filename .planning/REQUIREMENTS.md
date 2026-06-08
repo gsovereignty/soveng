@@ -15,33 +15,33 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Language Filtering
 
-- [ ] **LANG-01**: Non-English articles are detected in-browser via a lightweight language library (franc-min) and hidden from the article list
-- [ ] **LANG-02**: Language detection strips Markdown/code blocks and requires a minimum text length before classifying; undetermined or too-short articles fail open (treated as English, shown)
+- [x] **LANG-01**: Non-English articles are detected in-browser via a lightweight language library (franc-min) and hidden from the article list
+- [x] **LANG-02**: Language detection strips Markdown/code blocks and requires a minimum text length before classifying; undetermined or too-short articles fail open (treated as English, shown)
 
 ### Spam Filtering
 
-- [ ] **SPAM-01**: Articles are classified spam/ham by an in-browser ML model (transformers.js ONNX) and spam is hidden from the article list
-- [ ] **SPAM-02**: Classification uses a conservative default confidence threshold (~0.90) so legitimate crypto/Nostr articles are not over-filtered
-- [ ] **SPAM-03**: Articles below a minimum text length bypass spam classification and are always shown
-- [ ] **SPAM-04**: Classification fails open — model-load failure, worker crash, or inference error leaves the article visible
+- [x] **SPAM-01**: Articles are classified spam/ham by an in-browser ML model (transformers.js ONNX) and spam is hidden from the article list
+- [x] **SPAM-02**: Classification uses a conservative default confidence threshold (~0.90) so legitimate crypto/Nostr articles are not over-filtered
+- [x] **SPAM-03**: Articles below a minimum text length bypass spam classification and are always shown
+- [x] **SPAM-04**: Classification fails open — model-load failure, worker crash, or inference error leaves the article visible
 
 ### Length Filtering
 
-- [ ] **LEN-01**: Articles shorter than 500 words are hidden from the list as an editorial long-form threshold. This gate is **always on**, independent of the content-filter toggle (added 2026-06-08 during Phase 5 discussion; word-count boundary may be tuned during validation)
+- [x] **LEN-01**: Articles shorter than 500 words are hidden from the list as an editorial long-form threshold. This gate is **always on**, independent of the content-filter toggle (added 2026-06-08 during Phase 5 discussion; word-count boundary may be tuned during validation)
 
 ### ML Infrastructure
 
-- [ ] **MLINF-01**: The ML model runs off the main thread in a Web Worker so the UI never blocks or janks during classification
-- [ ] **MLINF-02**: The model loads correctly under the GitHub Pages `/soveng/` base path (wasmPaths pinned, single-thread WASM / numThreads=1) and the model artifact is cached across sessions
-- [ ] **MLINF-03**: Articles render immediately on fetch and are hidden progressively as classification results arrive; classification result is cached per event id (not re-run on every render)
+- [x] **MLINF-01**: The ML model runs off the main thread in a Web Worker so the UI never blocks or janks during classification
+- [x] **MLINF-02**: The model loads correctly under the GitHub Pages `/soveng/` base path (wasmPaths pinned, single-thread WASM / numThreads=1) and the model artifact is cached across sessions
+- [x] **MLINF-03**: Articles render immediately on fetch and are hidden progressively as classification results arrive; classification result is cached per event id (not re-run on every render)
 
 ### Filter Controls & Transparency
 
-- [ ] **CTRL-01**: Content filtering is ON by default
-- [ ] **CTRL-02**: A progress indicator is shown while the model downloads on first visit
-- [ ] **CTRL-03**: The reader displays a count of how many articles were filtered (hidden)
-- [ ] **CTRL-04**: User can toggle content filtering on/off
-- [ ] **CTRL-05**: User can adjust the spam confidence threshold via a slider
+- [x] **CTRL-01**: Content filtering is ON by default
+- [x] **CTRL-02**: A progress indicator is shown while the model downloads on first visit
+- [x] **CTRL-03**: The reader displays a count of how many articles were filtered (hidden)
+- [x] **CTRL-04**: User can toggle content filtering on/off
+- [x] **CTRL-05**: User can adjust the spam confidence threshold via a slider
 - [ ] **CTRL-06**: ~~User can reveal ("peek at") hidden articles to recover false positives~~ — **reinterpreted 2026-06-08**: no separate "show hidden" control. The spam-confidence slider (CTRL-05) at its maximum effectively disables spam filtering, surfacing false positives — this is the recovery mechanism. Satisfied by CTRL-05.
 
 ## Future Requirements
@@ -85,19 +85,19 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LANG-01 | Phase 5 | Pending |
-| LANG-02 | Phase 5 | Pending |
-| SPAM-01 | Phase 5 | Pending |
-| SPAM-02 | Phase 5 | Pending |
-| SPAM-03 | Phase 5 | Pending |
-| SPAM-04 | Phase 5 | Pending |
-| LEN-01 | Phase 5 | Pending |
-| MLINF-01 | Phase 5 | Pending |
-| MLINF-02 | Phase 5 | Pending |
-| MLINF-03 | Phase 5 | Pending |
-| CTRL-01 | Phase 5 | Pending |
-| CTRL-02 | Phase 5 | Pending |
-| CTRL-03 | Phase 5 | Pending |
-| CTRL-04 | Phase 5 | Pending |
-| CTRL-05 | Phase 5 | Pending |
+| LANG-01 | Phase 5 | Complete |
+| LANG-02 | Phase 5 | Complete |
+| SPAM-01 | Phase 5 | Complete |
+| SPAM-02 | Phase 5 | Complete |
+| SPAM-03 | Phase 5 | Complete |
+| SPAM-04 | Phase 5 | Complete |
+| LEN-01 | Phase 5 | Complete |
+| MLINF-01 | Phase 5 | Complete |
+| MLINF-02 | Phase 5 | Complete |
+| MLINF-03 | Phase 5 | Complete |
+| CTRL-01 | Phase 5 | Complete |
+| CTRL-02 | Phase 5 | Complete |
+| CTRL-03 | Phase 5 | Complete |
+| CTRL-04 | Phase 5 | Complete |
+| CTRL-05 | Phase 5 | Complete |
 | CTRL-06 | Phase 5 (folded into CTRL-05) | Pending |
