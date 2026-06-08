@@ -4,10 +4,10 @@ milestone: v1.1
 milestone_name: Local ML Content Filtering
 status: planning
 stopped_at: Phase 5 context gathered
-last_updated: "2026-06-08T04:17:08.926Z"
+last_updated: "2026-06-08T04:21:39.529Z"
 last_activity: 2026-06-08 — v1.1 roadmap created (3 phases, 15 requirements mapped)
 progress:
-  total_phases: 3
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,16 +25,14 @@ See: .planning/PROJECT.md (updated 2026-06-07)
 
 ## Current Position
 
-Phase: Phase 5 — ML Pipeline Infrastructure (not started)
+Phase: Phase 5 — ML Content Filtering (not started)
 Plan: —
 Status: Roadmap complete, awaiting phase planning
-Last activity: 2026-06-08 — v1.1 roadmap created (3 phases, 15 requirements mapped)
+Last activity: 2026-06-08 — Phases 6 & 7 folded into Phase 5 (single-phase v1.1); context captured
 
 ```
-v1.1 progress: [░░░░░░░░░░] 0% (0/3 phases)
-Phase 5 [░░░░░░░░░░] Not started
-Phase 6 [░░░░░░░░░░] Not started
-Phase 7 [░░░░░░░░░░] Not started
+v1.1 progress: [░░░░░░░░░░] 0% (0/1 phases)
+Phase 5 [░░░░░░░░░░] Not started (absorbs former Phases 6 & 7)
 ```
 
 ## Performance Metrics
@@ -120,7 +118,7 @@ Recent decisions affecting current work:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| v1.1 | Phase 7 (False-Positive Recovery) is explicitly conditional — do not plan until Phase 5 smoke tests reviewed and Phase 6 user feedback available | Conditional | v1.1 roadmap |
+| v1.1 | Former Phases 6 (Filter Controls) & 7 (False-Positive Recovery) folded into Phase 5 on 2026-06-08 — v1.1 is now a single phase shipping the full filtering feature + controls | Resolved | 2026-06-08 |
 
 ## Session Continuity
 
