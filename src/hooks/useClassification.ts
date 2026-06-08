@@ -131,6 +131,17 @@ export function useClassification(
             score >= thresholdRef.current ? "spam" : "ham"
           resultsRef.current.set(id, computedLabel)
           successCountRef.current += 1
+
+          // D-04: dev-only spam-score logging — tree-shaken out of the production bundle.
+          // Logs id + score + resolved label only. NEVER logs article body/content text
+          // (bodies may embed private keys — see PITFALLS.md Security row).
+          // Format: one row per article so 20+ scores are easy to scan at a glance.
+          if (import.meta.env.DEV) {
+            const hides = score >= thresholdRef.current
+            console.log(
+              `[spam-score] id=${id.slice(0, 8)} score=${score.toFixed(4)} label=${computedLabel} threshold=${thresholdRef.current.toFixed(2)} hides=${hides}`
+            )
+          }
         }
 
         // Update modelFailed: true only if ALL results so far were errors (and at least one error)
