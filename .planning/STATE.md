@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Local ML Content Filtering
 status: planning
-last_updated: "2026-06-07T15:35:47.177Z"
-last_activity: 2026-06-07
+last_updated: "2026-06-08T00:00:00.000Z"
+last_activity: 2026-06-08
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,24 +20,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-07)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** v1.0 shipped — planning next milestone (`/gsd-new-milestone`)
+**Current focus:** v1.1 — in-browser ML content filtering (spam + non-English), roadmap defined, ready to plan Phase 5
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 5 — ML Pipeline Infrastructure (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-07 — Milestone v1.1 started
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-06-08 — v1.1 roadmap created (3 phases, 15 requirements mapped)
+
+```
+v1.1 progress: [░░░░░░░░░░] 0% (0/3 phases)
+Phase 5 [░░░░░░░░░░] Not started
+Phase 6 [░░░░░░░░░░] Not started
+Phase 7 [░░░░░░░░░░] Not started
+```
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 9 (v1.0)
 - Average duration: —
 - Total execution time: —
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -52,8 +59,6 @@ Last activity: 2026-06-07 — Milestone v1.1 started
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 02 P03 | 2min | - tasks | - files |
-| Phase 03 P02 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,14 +91,22 @@ Recent decisions affecting current work:
 - [Phase ?]: Boot-then-stream (D-01): BootSequence guarded by articles.length === 0 — first article swaps to live ArticleList
 - [Phase ?]: 03-02: Streaming status line (D-02): > streaming... N/21 received resolves to > ready — N articles loaded
 - [Phase ?]: 03-02: No loadingProfiles gate — profiles.get() returns undefined; ArticleCard upgrades avatar/name in place on kind:0 arrival
+- v1.1 roadmap: Integration is surgical — single visibleArticles memo inserted between sortedArticles and the three existing downstream memos; facets derive from visibleArticles (post-filter) not sortedArticles
+- v1.1 roadmap: Phase 5 must resolve all 5 critical pitfalls AND be smoke-tested on deployed /soveng/ URL (not just localhost)
+- v1.1 roadmap: SPAM_THRESHOLD = 0.90 (not 0.50) — domain shift from SMS training data; named constant with comment required from day one
+- v1.1 roadmap: Worker singleton at module level (mirrors pool.ts pattern) — never inside useEffect; StrictMode-safe
+- v1.1 roadmap: franc treats 'und' as English (fail-open); code blocks stripped before detection; 200+ char minimum after stripping
+- v1.1 roadmap: ?worker Vite import syntax for full dependency bundling (not bare new URL())
+- v1.1 roadmap: wasmPaths CDN URL must be pinned to exact onnxruntime-web transitive version — derive from node_modules at implementation time
 
 ### Pending Todos
 
-None yet.
+- Resolve open product decision before Phase 5 planning: inspect real Nostr article spam scores against live relays. If false positives appear above 0.90 threshold, consider shipping language-detection-only for v1.1 and deferring spam ML to v1.2.
+- Derive wasmPaths CDN version pin from node_modules/onnxruntime-web/package.json after npm install @huggingface/transformers.
 
 ### Blockers/Concerns
 
-- None open. (Resolved in v1.0: relay EOSE timeout tuning and batch kind:0 query limits — validated against live relays during Phase 2.)
+- None open.
 - Carry-forward note: DATA-02 requirement/constraint text ("21 most recent, newest first") diverges from shipped behavior (uncapped, reply-count sort via 260607-vqt) — reconcile in next milestone.
 
 ### Quick Tasks Completed
@@ -106,10 +119,10 @@ None yet.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| v1.1 | Phase 7 (False-Positive Recovery) is explicitly conditional — do not plan until Phase 5 smoke tests reviewed and Phase 6 user feedback available | Conditional | v1.1 roadmap |
 
 ## Session Continuity
 
-Last session: 2026-06-07T09:16:40.597Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-filtering-inline-reader/04-CONTEXT.md
+Last session: 2026-06-08
+Stopped at: v1.1 roadmap created
+Resume file: .planning/ROADMAP.md — begin with `/gsd-plan-phase 5`

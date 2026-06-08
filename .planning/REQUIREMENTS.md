@@ -81,18 +81,18 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LANG-01 | TBD | Pending |
-| LANG-02 | TBD | Pending |
-| SPAM-01 | TBD | Pending |
-| SPAM-02 | TBD | Pending |
-| SPAM-03 | TBD | Pending |
-| SPAM-04 | TBD | Pending |
-| MLINF-01 | TBD | Pending |
-| MLINF-02 | TBD | Pending |
-| MLINF-03 | TBD | Pending |
-| CTRL-01 | TBD | Pending |
-| CTRL-02 | TBD | Pending |
-| CTRL-03 | TBD | Pending |
-| CTRL-04 | TBD | Pending |
-| CTRL-05 | TBD | Pending |
-| CTRL-06 | TBD | Pending |
+| LANG-01 | Phase 5 | Pending |
+| LANG-02 | Phase 5 | Pending |
+| SPAM-01 | Phase 5 | Pending |
+| SPAM-02 | Phase 5 | Pending |
+| SPAM-03 | Phase 5 | Pending |
+| SPAM-04 | Phase 5 | Pending |
+| MLINF-01 | Phase 5 | Pending |
+| MLINF-02 | Phase 5 | Pending |
+| MLINF-03 | Phase 5 | Pending |
+| CTRL-01 | Phase 6 | Pending |
+| CTRL-02 | Phase 6 | Pending |
+| CTRL-03 | Phase 6 | Pending |
+| CTRL-04 | Phase 6 | Pending |
+| CTRL-05 | Phase 7 | Pending |
+| CTRL-06 | Phase 7 | Pending |
