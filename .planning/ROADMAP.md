@@ -48,8 +48,8 @@ Full phase details archived in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROAD
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — ClassificationLabel type + franc-min language gate + 500-word length gate (pure, tested)
-- [ ] 05-02-PLAN.md — ONNX Web Worker infra: transformers install, Vite config, numThreads=1 + version-pinned wasmPaths, singleton getter
+- [x] 05-01-PLAN.md — ClassificationLabel type + franc-min language gate + 500-word length gate (pure, tested)
+- [x] 05-02-PLAN.md — ONNX Web Worker infra: transformers install, Vite config, numThreads=1 + version-pinned wasmPaths, singleton getter
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

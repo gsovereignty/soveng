@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: Local ML Content Filtering
 status: executing
 stopped_at: Phase 5 context gathered
-last_updated: "2026-06-08T04:49:36.403Z"
-last_activity: 2026-06-08 -- Phase 05 planning complete
+last_updated: "2026-06-08T06:13:32.806Z"
+last_activity: 2026-06-08 -- Phase 05 execution started
 progress:
   total_phases: 1
   completed_phases: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-07)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** v1.1 — in-browser ML content filtering (spam + non-English), roadmap defined, ready to plan Phase 5
+**Current focus:** Phase 05 — ml-pipeline-infrastructure
 
 ## Current Position
 
-Phase: Phase 5 — ML Content Filtering (not started)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-08 -- Phase 05 planning complete
+Phase: 05 (ml-pipeline-infrastructure) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 05
+Last activity: 2026-06-08 -- Phase 05 execution started
 
 ```
 v1.1 progress: [░░░░░░░░░░] 0% (0/1 phases)
