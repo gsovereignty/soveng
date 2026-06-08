@@ -14,4 +14,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // v1.1: prevent Vite esbuild pre-bundler from parsing ONNX/WASM imports
+  optimizeDeps: {
+    exclude: ["@huggingface/transformers"],
+  },
+  // v1.1: workers must be ES modules for dynamic import() inside them
+  worker: {
+    format: "es",
+  },
 })

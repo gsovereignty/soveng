@@ -8,13 +8,16 @@
     "build": "tsc -b && vite build",
     "postbuild": "node --input-type=commonjs -e \"const fs=require('fs');fs.copyFileSync('build/index.html','build/404.html');console.log('404.html written');\"",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:ort-version": "node --input-type=commonjs -e \"const fs=require('fs');const p=JSON.parse(fs.readFileSync('./node_modules/onnxruntime-web/package.json','utf8'));console.log(p.version)\""
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",
+    "@huggingface/transformers": "^4.2.0",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "franc-min": "^6.2.0",
     "lucide-react": "^1.17.0",
     "nostr-tools": "^2.23.5",
     "radix-ui": "^1.5.0",
