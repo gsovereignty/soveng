@@ -43,7 +43,6 @@ const SHORT_ENGLISH = "This is a short article."
 
 function makeArticle(overrides: Partial<Article> & { id: string }): Article {
   return {
-    id: overrides.id,
     pubkey: "pubkey-" + overrides.id,
     coordinate: "30023:pubkey:" + overrides.id,
     d: overrides.id,
@@ -121,7 +120,6 @@ describe("useClassification", () => {
     const call = fakeWorker.postMessage.mock.calls[0][0]
     expect(call.id).toBe("eng-long")
     expect(call.text.length).toBeLessThanOrEqual(512)
-    expect(result => result).toBeTruthy()
   })
 
   it("labels non-English articles 'non-english' and does NOT postMessage them", async () => {
@@ -368,8 +366,9 @@ describe("useClassification", () => {
       fireWorkerMessage({ type: "unknown", id: "unknown-msg" })
     })
 
-    // Still pending — unknown message should have no effect on the label
+    // Still pending — unknown message should have no effect on the label or version
     expect(result.current.map.get("unknown-msg")).toBe("pending")
+    expect(result.current.version).toBe(versionBefore)
   })
 
   it("version increments when a result arrives", async () => {
