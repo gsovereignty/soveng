@@ -58,7 +58,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-05-PLAN.md — App.tsx integration: visibleArticles memo, downstream memos switched, on-by-default persisted toggle + slider
+- [x] 05-05-PLAN.md — App.tsx integration: visibleArticles memo, downstream memos switched, on-by-default persisted toggle + slider
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

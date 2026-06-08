@@ -12,6 +12,7 @@ progress:
   total_plans: 6
   completed_plans: 0
   percent: 0
+  plans_completed_this_phase: 5
 ---
 
 # Project State
@@ -26,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-06-07)
 ## Current Position
 
 Phase: 05 (ml-pipeline-infrastructure) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 05
-Last activity: 2026-06-08 -- Phase 05 execution started
+Plan: 6 of 6
+Status: Executing Phase 05 — Wave 3 complete, Wave 4 next (05-06: D-04 validation + deployment smoke test)
+Last activity: 2026-06-08 -- Plan 05-05 complete (App.tsx integration)
 
 ```
 v1.1 progress: [░░░░░░░░░░] 0% (0/1 phases)
@@ -97,6 +98,10 @@ Recent decisions affecting current work:
 - v1.1 roadmap: franc treats 'und' as English (fail-open); code blocks stripped before detection; 200+ char minimum after stripping
 - v1.1 roadmap: ?worker Vite import syntax for full dependency bundling (not bare new URL())
 - v1.1 roadmap: wasmPaths CDN URL must be pinned to exact onnxruntime-web transitive version — derive from node_modules at implementation time
+- 05-05: visibleArticles inserted between sortedArticles and all three downstream memos — facets/dynamicCounts/filteredArticles all derive from ML-filtered view
+- 05-05: spamThreshold added to visibleArticles dep array alongside classificationVersion — slider re-thresholding triggers memo re-eval even when version is stale
+- 05-05: filterEnabled default-on via lazy initializer !== 'false' (T-05-LSPARSE safe default)
+- 05-05: ContentFilterControls rendered above FilterBar inside the articles branch
 
 ### Pending Todos
 
@@ -122,6 +127,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-08T04:17:08.922Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-ml-pipeline-infrastructure/05-CONTEXT.md
+Last session: 2026-06-08T06:47:33Z
+Stopped at: Plan 05-05 complete — App.tsx integration (Wave 3 done)
+Resume file: .planning/phases/05-ml-pipeline-infrastructure/05-06-PLAN.md
