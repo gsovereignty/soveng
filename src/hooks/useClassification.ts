@@ -10,6 +10,10 @@ import { detectLanguage, countWords } from "@/lib/languageDetect"
 // normal vocabulary in Bitcoin/Nostr articles. Starting at 0.90 minimises false positives.
 // Pin this constant to the value validated during the D-04 calibration run against
 // 20+ live relay articles. (PITFALLS.md Pitfall 1, D-02)
+//
+// VALIDATED 2026-06-08 (05-06 go/no-go, D-01): GO — pinned at 0.90. Live smoke test on
+// https://gsovereignty.github.io/soveng/ confirmed legitimate Bitcoin/Lightning/Nostr
+// articles are NOT over-filtered at this threshold; spam ML is trusted at 0.90.
 export const DEFAULT_SPAM_THRESHOLD = 0.90
 
 // Articles shorter than this word count bypass ONNX inference entirely.
