@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Email-Client Layout
-status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-06-09T06:00:00.000Z"
-last_activity: 2026-06-09 -- Phase 06 Plan 03 completed
+status: verifying
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-06-09T05:27:56.372Z"
+last_activity: 2026-06-09
 progress:
-  total_phases: 3
+  total_phases: 1
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 3
-  percent: 75
+  total_plans: 7
+  completed_plans: 5
+  percent: 0
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-08)
 
 Phase: 06 (layout-scaffold-routing) — EXECUTING
 Plan: 4 of 4
-Status: Executing Phase 06 (Plan 03 complete)
-Last activity: 2026-06-09 -- Phase 06 Plan 03 completed
+Status: Phase complete — ready for verification
+Last activity: 2026-06-09
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
@@ -60,6 +60,7 @@ v1.2 Email-Client Layout        [██████░░░░] EXECUTING  (3/4
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 06 P05 | 3 minutes | - tasks | - files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Recent decisions affecting current work:
 - 06-03: selectedArticle appended after filteredArticles — filteredArticles-first then sortedArticles fallback (P2/P11)
 - 06-03: 404 branch tied to status !== 'streaming' (stream lifecycle, not timer — D-09)
 - 06-03: ArticleList rows wrapped in clickable div (role=button, keyboard-accessible) — additive wiring, accordion preserved
+- [Phase ?]: key={selectedNaddr} on scroll container div — React remounts on change, scrollTop resets to 0 (P10/READ-03)
+- [Phase ?]: selectedHiddenByFilter is a derived const (not useMemo/state) — true when in sortedArticles but absent from filteredArticles
+- [Phase ?]: onClearFilters reuses setSelectedTags(new Set()) — exact pattern from sidebar [FILTER] empty-list button; ML toggle is the control for ML-hidden articles
 
 ### Pending Todos
 
@@ -153,6 +157,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-09T05:30:00.000Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-06-09T05:27:56.368Z
+Stopped at: Completed 06-05-PLAN.md
 Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 04

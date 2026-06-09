@@ -83,11 +83,11 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-  - [ ] 06-04-PLAN.md — Enriched SidebarRow + accordion removal: avatar/name/title/timestamp/summary/thumbnail, untrusted-image hardening, selected-row highlight, delete ArticleCard (ENRICH-01, ROW-01, ROW-02, READ-05)
+  - [x] 06-04-PLAN.md — Enriched SidebarRow + accordion removal: avatar/name/title/timestamp/summary/thumbnail, untrusted-image hardening, selected-row highlight, delete ArticleCard (ENRICH-01, ROW-01, ROW-02, READ-05)
 
 **Wave 5** *(blocked on Wave 4 — shares src/App.tsx)*
 
-  - [ ] 06-05-PLAN.md — Reading-pane polish: scroll-reset on article switch + hidden-by-filter notice with restore control; reconfirm sanitized body + placeholder (READ-01, READ-02, READ-03, READ-04)
+  - [x] 06-05-PLAN.md — Reading-pane polish: scroll-reset on article switch + hidden-by-filter notice with restore control; reconfirm sanitized body + placeholder (READ-01, READ-02, READ-03, READ-04)
 
 **Wave 6** *(blocked on Wave 5 — shares src/App.tsx)*
 
@@ -116,6 +116,6 @@ Requirements (MOBILE-01/02/03) and success criteria moved into Phase 6 above.
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Email-Client Layout (full v1.2) | v1.2 | 3/7 | Executing | - |
+| 6. Email-Client Layout (full v1.2) | v1.2 | 5/7 | In Progress|  |
 | ~~7. Reading Pane & Enriched Rows~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |
 | ~~8. Mobile Swap & Polish~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |

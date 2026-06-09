@@ -27,10 +27,10 @@
 
 ### Reading Pane
 
-- [ ] **READ-01**: Selecting a row renders that article's sanitized Markdown body in the reading pane, reusing the existing `ArticleBody` (react-markdown + rehype-sanitize, never rehype-raw) unchanged.
-- [ ] **READ-02**: When no article is selected, the reading pane shows a terminal-styled placeholder (e.g. `> select an article to read`).
-- [ ] **READ-03**: Switching the selected article resets the reading pane's scroll position to the top.
-- [ ] **READ-04**: When the active hashtag/ML filter hides the currently-selected article, the reading pane shows a "hidden by current filter" notice with a way to clear the filter / restore the view (rather than silently mismatching the list, or slamming shut).
+- [x] **READ-01**: Selecting a row renders that article's sanitized Markdown body in the reading pane, reusing the existing `ArticleBody` (react-markdown + rehype-sanitize, never rehype-raw) unchanged.
+- [x] **READ-02**: When no article is selected, the reading pane shows a terminal-styled placeholder (e.g. `> select an article to read`).
+- [x] **READ-03**: Switching the selected article resets the reading pane's scroll position to the top.
+- [x] **READ-04**: When the active hashtag/ML filter hides the currently-selected article, the reading pane shows a "hidden by current filter" notice with a way to clear the filter / restore the view (rather than silently mismatching the list, or slamming shut).
 - [ ] **READ-05**: The inline-accordion reader is removed — there is one reading experience (the reading pane), not two.
 
 ### Deep-Linking
@@ -48,19 +48,23 @@
 ## Future Requirements (deferred beyond v1.2)
 
 ### Enrichment
+
 - **ENRICH-02**: Clickable hashtag pills on rows/reading pane to drive the filter.
 - **ENRICH-03**: Per-relay connection status indicator.
 
 ### Configuration
+
 - **CONF-01**: User-configurable relay set.
 - **CONF-02**: Adjustable feed length.
 
 ### Filtering Quality
+
 - **SPAM-05**: Nostr/long-form-trained spam classifier (replace the SMS-trained model).
 - **SPAM-06**: Per-article "why filtered" disclosure.
 - **MUTE-01**: Pubkey denylist / mute list.
 
 ### Tech Debt
+
 - **DATA-02 reconcile**: Requirement/constraint text still says "21 most recent, newest first"; shipped behavior is uncapped + reply-count sort (quick task 260607-vqt). Reconcile the documented behavior in a future milestone.
 
 ## Out of Scope (v1.2)
@@ -90,10 +94,10 @@
 | ENRICH-01 | Phase 6 | Pending |
 | ROW-01 | Phase 6 | Pending |
 | ROW-02 | Phase 6 | Pending |
-| READ-01 | Phase 6 | Pending |
-| READ-02 | Phase 6 | Pending |
-| READ-03 | Phase 6 | Pending |
-| READ-04 | Phase 6 | Pending |
+| READ-01 | Phase 6 | Complete |
+| READ-02 | Phase 6 | Complete |
+| READ-03 | Phase 6 | Complete |
+| READ-04 | Phase 6 | Complete |
 | READ-05 | Phase 6 | Pending |
 | MOBILE-01 | Phase 6 | Pending |
 | MOBILE-02 | Phase 6 | Pending |
