@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile, resolveArticleStatus, sortArticlesByReplies, referencedArticleCoordinates } from "@/lib/nostr"
+import { articleCoordinate, parseArticle, classifyRelayClose, parseProfile, resolveArticleStatus, sortArticlesByReplies, referencedArticleCoordinates, articleNaddr } from "@/lib/nostr"
+import { decode as nip19Decode } from "nostr-tools/nip19"
 import type { Article } from "@/types/nostr"
 import type { Event } from "nostr-tools/core"
 
@@ -349,5 +350,59 @@ describe("referencedArticleCoordinates", () => {
     } as unknown as Event
 
     expect(referencedArticleCoordinates(event)).toEqual([])
+  })
+})
+
+describe("articleNaddr", () => {
+  // A real valid 32-byte hex pubkey (required by naddrEncode)
+  const validPubkey = "7fa56f5d6962ab1e3cd424e758c3002b8665f7b0d8dcee9fe9e288d7751ac194"
+  const validD = "hello-world"
+  const validCoordinate = `30023:${validPubkey}:${validD}`
+
+  function makeArticleFixture(overrides: Partial<Article> = {}): Article {
+    return {
+      id: "id-abc",
+      pubkey: validPubkey,
+      coordinate: validCoordinate,
+      d: validD,
+      title: "Test Article",
+      summary: undefined,
+      image: undefined,
+      publishedAt: 1700000000000,
+      createdAt: 1700000000000,
+      content: "body text",
+      hashtags: [],
+      ...overrides,
+    }
+  }
+
+  it("returns a string beginning with 'naddr1' for a valid article", () => {
+    const article = makeArticleFixture()
+    const result = articleNaddr(article)
+    expect(result).toMatch(/^naddr1/)
+  })
+
+  it("round-trips: decoding the naddr yields kind 30023, same pubkey, same identifier (LINK-01)", () => {
+    const article = makeArticleFixture()
+    const naddr = articleNaddr(article)
+    const decoded = nip19Decode(naddr)
+    expect(decoded.type).toBe("naddr")
+    expect(decoded.data.kind).toBe(30023)
+    expect(decoded.data.pubkey).toBe(validPubkey)
+    expect(decoded.data.identifier).toBe(validD)
+  })
+
+  it("does NOT throw and returns the coordinate fallback when pubkey is malformed", () => {
+    const badPubkey = "not-a-valid-hex-pubkey"
+    const article = makeArticleFixture({
+      pubkey: badPubkey,
+      coordinate: `30023:${badPubkey}:${validD}`,
+    })
+    let result: string | undefined
+    expect(() => {
+      result = articleNaddr(article)
+    }).not.toThrow()
+    // Should return the coordinate fallback, not throw
+    expect(result).toBe(`30023:${badPubkey}:${validD}`)
   })
 })

@@ -1,4 +1,5 @@
 import type { Event } from "nostr-tools/core"
+import { naddrEncode } from "nostr-tools/nip19"
 import type { Article, Profile } from "@/types/nostr"
 
 export function articleCoordinate(event: Event): string {
@@ -116,6 +117,20 @@ export function sortArticlesByReplies(
     // Tie-break: newer publishedAt first
     return b.publishedAt - a.publishedAt
   })
+}
+
+/**
+ * Returns a NIP-19 naddr string for a kind:30023 article.
+ * Wraps naddrEncode in a try/catch — malformed pubkey or d-tag returns the
+ * stable `article.coordinate` string instead of throwing (T-06-01 mitigation).
+ * Relay hints are omitted intentionally (privacy + shorter URLs).
+ */
+export function articleNaddr(article: Article): string {
+  try {
+    return naddrEncode({ kind: 30023, pubkey: article.pubkey, identifier: article.d })
+  } catch {
+    return article.coordinate
+  }
 }
 
 export function classifyRelayClose(reason: string): "clean" | "error" {
