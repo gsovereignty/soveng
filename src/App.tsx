@@ -163,7 +163,7 @@ function AppShell() {
         /* articles.length > 0 — streaming with articles, or done */
         <ResizablePanelGroup orientation="horizontal" className="flex-1">
           {/* Left panel: sidebar — pinned controls header + scrolling article list */}
-          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+          <ResizablePanel defaultSize="35%" minSize="25%" maxSize="50%">
             <div className="flex flex-col h-full">
               {/* Pinned sidebar header: filter controls (D-04) */}
               <div className="shrink-0 px-4 pt-4">
