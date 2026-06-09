@@ -6,10 +6,11 @@ import { ContentFilterControls } from "@/components/ContentFilterControls"
 import { NostrProvider } from "@/context/NostrContext"
 import { useNostr } from "@/context/NostrContext"
 import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
-import { sortArticlesByReplies } from "@/lib/nostr"
+import { sortArticlesByReplies, articleNaddr } from "@/lib/nostr"
 import { useClassification } from "@/hooks/useClassification"
 import { isHidden } from "@/types/nostr"
 import { DEFAULT_SPAM_THRESHOLD } from "@/hooks/useClassification"
+import type { Article } from "@/types/nostr"
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -23,6 +24,19 @@ function AppShell() {
   // Local UI filter state — NOT in NostrContext (D-10, Pattern 5)
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
   const [matchMode, setMatchMode] = useState<'OR' | 'AND'>('OR') // D-09: default OR
+
+  // Deep-link selection state (LINK-01..03) — initialized synchronously from URL hash
+  // P12: slice(1) strips the leading '#'; P13: read on mount via lazy initializer
+  const [selectedNaddr, setSelectedNaddr] = useState<string>(
+    () => window.location.hash.slice(1) || ''
+  )
+
+  // StrictMode-safe hashchange listener (P16) — mirrors useClassification.ts:166–172 exactly
+  useEffect(() => {
+    const onHashChange = () => setSelectedNaddr(window.location.hash.slice(1) || '')
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   // ML filter local state — no Zustand (D-11 pattern from Phase 2)
   // CTRL-01: default ON — any value other than literal 'false' is enabled (T-05-LSPARSE)
@@ -81,6 +95,17 @@ function AppShell() {
     [visibleArticles, selectedTags, matchMode]
   )
 
+  // Derived: the currently selected article — the ONLY append to the frozen memo chain (P11).
+  // Searches filteredArticles first so filter-hidden articles don't ghost in the reading pane.
+  // Falls back to sortedArticles for cold-load (P2) and filter-hidden-selection (P3) cases —
+  // the sortedArticles dep makes this reactive: re-evaluates on every ARTICLE_RECEIVED (P2).
+  const selectedArticle = useMemo(() => {
+    if (!selectedNaddr) return null
+    const inFiltered = filteredArticles.find(a => articleNaddr(a) === selectedNaddr)
+    if (inFiltered) return inFiltered
+    return sortedArticles.find(a => articleNaddr(a) === selectedNaddr) ?? null
+  }, [selectedNaddr, filteredArticles, sortedArticles])
+
   // Derived: empty-filter state (D-11) — NOT a NostrStatus variant
   const isFilterEmpty = selectedTags.size > 0 && filteredArticles.length === 0
 
@@ -94,6 +119,14 @@ function AppShell() {
       if (next.has(tag)) { next.delete(tag) } else { next.add(tag) }
       return next
     })
+  }
+
+  // Selection handler (LINK-01) — drives both local state and the URL hash.
+  // The hashchange listener keeps state in sync on browser back/forward.
+  function onSelectArticle(article: Article) {
+    const naddr = articleNaddr(article)
+    setSelectedNaddr(naddr)
+    window.location.hash = naddr
   }
 
   return (
