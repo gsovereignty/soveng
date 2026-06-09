@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Email-Client Layout
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-06-09T05:30:00.000Z"
-last_activity: 2026-06-09 -- Phase 06 Plan 02 completed
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-06-09T06:00:00.000Z"
+last_activity: 2026-06-09 -- Phase 06 Plan 03 completed
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -26,14 +26,14 @@ See: .planning/PROJECT.md (updated 2026-06-08)
 ## Current Position
 
 Phase: 06 (layout-scaffold-routing) — EXECUTING
-Plan: 3 of 4
-Status: Executing Phase 06 (Plan 02 complete)
-Last activity: 2026-06-09 -- Phase 06 Plan 02 completed
+Plan: 4 of 4
+Status: Executing Phase 06 (Plan 03 complete)
+Last activity: 2026-06-09 -- Phase 06 Plan 03 completed
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
 v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
-v1.2 Email-Client Layout        [████░░░░░░] EXECUTING  (2/4 plans done in Phase 06)
+v1.2 Email-Client Layout        [██████░░░░] EXECUTING  (3/4 plans done in Phase 06)
 ```
 
 ## Performance Metrics
@@ -117,6 +117,11 @@ Recent decisions affecting current work:
 - 06-02: ResizablePanelGroup uses orientation prop (not direction) — react-resizable-panels API
 - 06-02: overflow-y-auto on inner div inside each ResizablePanel, never on the panel itself (P4/#3548)
 - 06-02: h-screen + overflow-hidden outer shell; shrink-0 pinned header + flex-1 overflow-y-auto sidebar list
+- 06-03: selectedNaddr lazy initializer reads window.location.hash.slice(1) on mount (P12/P13)
+- 06-03: StrictMode-safe hashchange useEffect with removeEventListener cleanup (P16)
+- 06-03: selectedArticle appended after filteredArticles — filteredArticles-first then sortedArticles fallback (P2/P11)
+- 06-03: 404 branch tied to status !== 'streaming' (stream lifecycle, not timer — D-09)
+- 06-03: ArticleList rows wrapped in clickable div (role=button, keyboard-accessible) — additive wiring, accordion preserved
 
 ### Pending Todos
 
@@ -150,4 +155,4 @@ Recent decisions affecting current work:
 
 Last session: 2026-06-09T05:30:00.000Z
 Stopped at: Completed 06-02-PLAN.md
-Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 03
+Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 04

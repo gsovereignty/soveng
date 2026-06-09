@@ -65,7 +65,7 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-  - [ ] 06-03-PLAN.md — Deep-link routing + reading-pane stub: selectedNaddr/hash sync, selectedArticle memo, 404/loading states (LINK-01..03)
+  - [x] 06-03-PLAN.md — Deep-link routing + reading-pane stub: selectedNaddr/hash sync, selectedArticle memo, 404/loading states (LINK-01..03) (completed 2026-06-09)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -111,6 +111,6 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Layout Scaffold & Routing | v1.2 | 2/4 | Executing | - |
+| 6. Layout Scaffold & Routing | v1.2 | 3/4 | Executing | - |
 | 7. Reading Pane & Enriched Rows | v1.2 | 0/? | Not started | - |
 | 8. Mobile Swap & Polish | v1.2 | 0/? | Not started | - |
