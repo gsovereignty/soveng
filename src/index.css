@@ -46,6 +46,14 @@
   *, *::before, *::after {
     box-sizing: border-box;
   }
+  /* P9: explicit height chain so h-full/h-screen descendants resolve (not collapse to zero) */
+  html, body, #root {
+    height: 100%;
+  }
+  /* Page-scroll guard: scrolling lives inside each ResizablePanel, not on the page */
+  html, body {
+    overflow: hidden;
+  }
   body {
     background-color: var(--color-terminal-bg);
     color: var(--color-terminal-green);

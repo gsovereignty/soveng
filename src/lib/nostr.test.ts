@@ -387,6 +387,8 @@ describe("articleNaddr", () => {
     const naddr = articleNaddr(article)
     const decoded = nip19Decode(naddr)
     expect(decoded.type).toBe("naddr")
+    // Narrow the union type so TypeScript accepts the AddressPointer fields
+    if (decoded.type !== "naddr") throw new Error("Expected naddr type")
     expect(decoded.data.kind).toBe(30023)
     expect(decoded.data.pubkey).toBe(validPubkey)
     expect(decoded.data.identifier).toBe(validD)
