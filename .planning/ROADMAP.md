@@ -35,25 +35,38 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 
 </details>
 
-### 📋 v1.2 Email-Client Layout (Phases 6-8)
+### 📋 v1.2 Email-Client Layout (Phase 6 — consolidated)
 
-- [ ] **Phase 6: Layout Scaffold & Routing** - Install Resizable, establish h-screen height chain + inner overflow-y-auto scroll wrapper, move controls into sidebar panel, wire selectedNaddr state + selectedArticle memo + hash sync
-- [ ] **Phase 7: Reading Pane & Enriched Rows** - Build SidebarRow (ENRICH-01, untrusted-image hardening), full ReadingPane reusing ArticleBody, selected-row highlight, scroll reset, "hidden by filter" notice; delete ArticleCard/ArticleList
-- [ ] **Phase 8: Mobile Swap & Polish** - CSS visibility-based list/reader swap preserving scroll, back control, suppress Resizable handle below md breakpoint
+> **Scope consolidation (2026-06-09):** Phases 7 & 8 were folded into Phase 6 per user
+> request — the entire v1.2 layout (scaffold + routing + reading pane + enriched rows +
+> mobile) is now delivered in a single phase.
+
+- [ ] **Phase 6: Email-Client Layout (full v1.2)** - Resizable 2-pane scaffold + h-screen height chain, controls in sidebar, deep-link routing (selectedNaddr/hash); full ReadingPane reusing ArticleBody, enriched SidebarRow (ENRICH-01 + untrusted-image hardening), selected-row highlight, scroll reset, "hidden by filter" notice, delete ArticleCard/ArticleList; mobile single-pane list/reader swap preserving scroll, back control, suppress Resizable handle below md breakpoint
+- ~~Phase 7: Reading Pane & Enriched Rows~~ — **folded into Phase 6** (2026-06-09)
+- ~~Phase 8: Mobile Swap & Polish~~ — **folded into Phase 6** (2026-06-09)
 
 ## Phase Details
 
-### Phase 6: Layout Scaffold & Routing
+### Phase 6: Email-Client Layout (full v1.2 — Phases 7 & 8 folded in)
 
-**Goal**: The 2-pane master-detail shell is on screen, independently scrolling, with all controls in the sidebar and deep-link routing wired end-to-end
+**Goal**: The complete v1.2 email-client layout — a 2-pane master-detail shell with deep-link routing, a full Markdown reading pane, inbox-style enriched rows with safe images, and a mobile single-pane swap — replacing the single-column inline-accordion reader
 **Depends on**: Phase 5 (complete)
-**Requirements**: LAYOUT-01, LAYOUT-02, LAYOUT-03, LAYOUT-04, LINK-01, LINK-02, LINK-03
+**Requirements**: LAYOUT-01, LAYOUT-02, LAYOUT-03, LAYOUT-04, LINK-01, LINK-02, LINK-03, ENRICH-01, ROW-01, ROW-02, READ-01, READ-02, READ-03, READ-04, READ-05, MOBILE-01, MOBILE-02, MOBILE-03
 **Success Criteria** (what must be TRUE):
 
   1. User sees a 2-pane horizontal split (sidebar left, reading pane right) on desktop that fills the full viewport — both panels scroll independently with 20+ articles loaded
   2. All existing filter controls (hashtag facets, AND/OR toggle, ML on/off, confidence slider, download progress, hidden count) are visible and functional inside the sidebar panel; the terminal aesthetic is unchanged
   3. Copying the URL of an open article and pasting it into a new tab opens that article directly, including after a hard reload (hash-based, no 404)
-  4. The browser back and forward buttons navigate between article selections; opening a deep link when the article has not yet streamed in shows a loading state and then resolves automatically as relay data arrives**Plans**: 4 plans
+  4. The browser back and forward buttons navigate between article selections; opening a deep link when the article has not yet streamed in shows a loading state and then resolves automatically as relay data arrives
+  5. Clicking a sidebar row displays that article's Markdown body in the reading pane using the existing ArticleBody component (rehype-sanitize preserved, no `<script>` survives in the rendered DOM); the inline accordion reader is removed
+  6. Each sidebar row shows author avatar + name, article title, timestamp, a summary snippet (from `summary` tag or stripped excerpt), and a thumbnail when `image` is present — absent summary/image degrade silently with no broken boxes or layout shift; the selected row is visually highlighted
+  7. Author-supplied image URLs are rendered only over HTTPS, with `referrerPolicy="no-referrer"` and `loading="lazy"`; images that error or use HTTP are hidden immediately without a broken-image icon
+  8. Switching to a different article resets the reading pane scroll to the top; when no article is selected the pane shows the terminal placeholder (`> select an article to read`); when the active filter hides the selected article the pane shows a "hidden by current filter" notice with a way to clear the filter
+  9. On a mobile viewport (375px wide) the article list occupies the full screen by default; tapping any article row transitions to a full-screen reading pane for that article
+  10. The mobile reading pane shows a terminal-styled "‹ back" control; tapping it returns to the article list at the same scroll position the user was at before opening the article
+  11. The Resizable drag handle is not visible or interactive on mobile viewports; the desktop 2-pane split is only present at the md breakpoint and above
+
+**Plans**: 3 complete (06-01..03); reading-pane/rows/mobile plans pending (re-planning for the folded-in scope)
 
 **Wave 1**
 
@@ -66,41 +79,24 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 **Wave 3** *(blocked on Wave 2 completion)*
 
   - [x] 06-03-PLAN.md — Deep-link routing + reading-pane stub: selectedNaddr/hash sync, selectedArticle memo, 404/loading states (LINK-01..03) (completed 2026-06-09)
+  - [~] Reading-pane body (READ-01/READ-05) partially pulled forward 2026-06-09 (commit dd680bb): ArticleBody renders in the pane, sidebar accordion disabled. Remaining READ/ENRICH/ROW/MOBILE work to be planned.
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Subsequent waves** *(folded-in scope — to be planned)*
 
-  - [ ] 06-04-PLAN.md — Human-verify checkpoint: split/scroll, controls, deep-link reload, back/forward + cold-load
+  - [ ] Reading pane: scroll-reset (READ-03), hidden-by-filter notice (READ-04), finalize ArticleBody reuse (READ-01/02/05)
+  - [ ] Enriched rows: SidebarRow with avatar/title/timestamp/summary/thumbnail (ENRICH-01), untrusted-image hardening (ROW-01), selected-row highlight (ROW-02); delete ArticleCard/ArticleList
+  - [ ] Mobile: single-pane list/reader swap preserving scroll (MOBILE-01/02), suppress Resizable handle below md (MOBILE-03)
+  - [ ] Human-verify checkpoint: all 11 success criteria (supersedes the original 06-04)
 
 **UI hint**: yes
 
-### Phase 7: Reading Pane & Enriched Rows
+### ~~Phase 7: Reading Pane & Enriched Rows~~ — folded into Phase 6 (2026-06-09)
 
-**Goal**: Selecting an article renders its full content in the reading pane with sanitized Markdown; every sidebar row shows inbox-style enrichment with safe image handling; the inline accordion is gone
-**Depends on**: Phase 6
-**Requirements**: ENRICH-01, ROW-01, ROW-02, READ-01, READ-02, READ-03, READ-04, READ-05
-**Success Criteria** (what must be TRUE):
+Requirements (ENRICH-01, ROW-01/02, READ-01..05) and success criteria moved into Phase 6 above.
 
-  1. Clicking a sidebar row displays that article's Markdown body in the reading pane using the existing ArticleBody component (rehype-sanitize preserved, no `<script>` survives in the rendered DOM); the inline accordion reader is removed
-  2. Each sidebar row shows author avatar + name, article title, timestamp, a summary snippet (from `summary` tag or stripped excerpt), and a thumbnail when `image` is present — absent summary/image degrade silently with no broken boxes or layout shift; the selected row is visually highlighted
-  3. Author-supplied image URLs are rendered only over HTTPS, with `referrerPolicy="no-referrer"` and `loading="lazy"`; images that error or use HTTP are hidden immediately without a broken-image icon
-  4. Switching to a different article resets the reading pane scroll to the top; when no article is selected the pane shows the terminal placeholder (`> select an article to read`); when the active filter hides the selected article the pane shows a "hidden by current filter" notice with a way to clear the filter
+### ~~Phase 8: Mobile Swap & Polish~~ — folded into Phase 6 (2026-06-09)
 
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 8: Mobile Swap & Polish
-
-**Goal**: On narrow screens the layout becomes a single full-screen pane that swaps between the article list and the reader, with the list scroll position preserved when returning
-**Depends on**: Phase 7
-**Requirements**: MOBILE-01, MOBILE-02, MOBILE-03
-**Success Criteria** (what must be TRUE):
-
-  1. On a mobile viewport (375px wide) the article list occupies the full screen by default; tapping any article row transitions to a full-screen reading pane for that article
-  2. The reading pane on mobile shows a terminal-styled "< back" control; tapping it returns to the article list at the same scroll position the user was at before opening the article
-  3. The Resizable drag handle is not visible or interactive on mobile viewports; the desktop 2-pane split is only present at the md breakpoint and above
-
-**Plans**: TBD
-**UI hint**: yes
+Requirements (MOBILE-01/02/03) and success criteria moved into Phase 6 above.
 
 ## Progress
 
@@ -111,6 +107,6 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Layout Scaffold & Routing | v1.2 | 3/4 | Executing | - |
-| 7. Reading Pane & Enriched Rows | v1.2 | 0/? | Not started | - |
-| 8. Mobile Swap & Polish | v1.2 | 0/? | Not started | - |
+| 6. Email-Client Layout (full v1.2) | v1.2 | 3/? | Executing | - |
+| ~~7. Reading Pane & Enriched Rows~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |
+| ~~8. Mobile Swap & Polish~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |

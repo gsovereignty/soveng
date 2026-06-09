@@ -87,19 +87,19 @@
 | LINK-01 | Phase 6 | Pending |
 | LINK-02 | Phase 6 | Pending |
 | LINK-03 | Phase 6 | Pending |
-| ENRICH-01 | Phase 7 | Pending |
-| ROW-01 | Phase 7 | Pending |
-| ROW-02 | Phase 7 | Pending |
-| READ-01 | Phase 7 | Pending |
-| READ-02 | Phase 7 | Pending |
-| READ-03 | Phase 7 | Pending |
-| READ-04 | Phase 7 | Pending |
-| READ-05 | Phase 7 | Pending |
-| MOBILE-01 | Phase 8 | Pending |
-| MOBILE-02 | Phase 8 | Pending |
-| MOBILE-03 | Phase 8 | Pending |
+| ENRICH-01 | Phase 6 | Pending |
+| ROW-01 | Phase 6 | Pending |
+| ROW-02 | Phase 6 | Pending |
+| READ-01 | Phase 6 | Pending |
+| READ-02 | Phase 6 | Pending |
+| READ-03 | Phase 6 | Pending |
+| READ-04 | Phase 6 | Pending |
+| READ-05 | Phase 6 | Pending |
+| MOBILE-01 | Phase 6 | Pending |
+| MOBILE-02 | Phase 6 | Pending |
+| MOBILE-03 | Phase 6 | Pending |
 
-**Coverage:** 18/18 mapped — Phase 6 (7 reqs), Phase 7 (8 reqs), Phase 8 (3 reqs).
+**Coverage:** 18/18 mapped — all 18 reqs consolidated into Phase 6 (Phases 7 & 8 folded in 2026-06-09 per scope-consolidation request).
 
 ---
 *Requirements defined: 2026-06-08 for milestone v1.2 Email-Client Layout*
