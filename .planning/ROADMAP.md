@@ -52,7 +52,11 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
   2. All existing filter controls (hashtag facets, AND/OR toggle, ML on/off, confidence slider, download progress, hidden count) are visible and functional inside the sidebar panel; the terminal aesthetic is unchanged
   3. Copying the URL of an open article and pasting it into a new tab opens that article directly, including after a hard reload (hash-based, no 404)
   4. The browser back and forward buttons navigate between article selections; opening a deep link when the article has not yet streamed in shows a loading state and then resolves automatically as relay data arrives
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 06-01-PLAN.md — Foundations: articleNaddr helper, index.css height chain (P9), shadcn resizable install
+  - [ ] 06-02-PLAN.md — 2-pane Resizable shell: h-screen layout, controls into sidebar, independent scroll (LAYOUT-01..04)
+  - [ ] 06-03-PLAN.md — Deep-link routing + reading-pane stub: selectedNaddr/hash sync, selectedArticle memo, 404/loading states (LINK-01..03)
+  - [ ] 06-04-PLAN.md — Human-verify checkpoint: split/scroll, controls, deep-link reload, back/forward + cold-load
 **UI hint**: yes
 
 ### Phase 7: Reading Pane & Enriched Rows
@@ -87,6 +91,6 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Layout Scaffold & Routing | v1.2 | 0/? | Not started | - |
+| 6. Layout Scaffold & Routing | v1.2 | 0/4 | Not started | - |
 | 7. Reading Pane & Enriched Rows | v1.2 | 0/? | Not started | - |
 | 8. Mobile Swap & Polish | v1.2 | 0/? | Not started | - |
