@@ -10,6 +10,11 @@ import { sortArticlesByReplies } from "@/lib/nostr"
 import { useClassification } from "@/hooks/useClassification"
 import { isHidden } from "@/types/nostr"
 import { DEFAULT_SPAM_THRESHOLD } from "@/hooks/useClassification"
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable"
 
 // AppShell reads context — must live inside NostrProvider
 function AppShell() {
@@ -92,83 +97,96 @@ function AppShell() {
   }
 
   return (
-    <div className="crt-scanlines crt-flicker min-h-screen bg-terminal-bg flex flex-col items-center justify-center p-8">
-      <header className="w-full max-w-2xl mb-6">
-        <p className="crt-glow text-terminal-green-dim text-xs tracking-widest uppercase">
-          soveng // nostr long-form reader
-        </p>
-      </header>
-      <main className="w-full max-w-2xl">
-        {/* Phase 3: progressive boot-then-stream (D-01) */}
-        {status === "streaming" && articles.length === 0 ? (
-          <BootSequence />
-        ) : status === "error" ? (
-          <div className="font-mono text-sm">
-            <p className="text-terminal-amber mb-4">
-              [ERR] relay connection failed — all relays returned errors
-            </p>
-            <button
-              onClick={refetch}
-              className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
-            >
-              &gt; retry connection
-            </button>
-          </div>
-        ) : status === "empty" ? (
-          <div className="font-mono text-sm">
-            <p className="text-terminal-muted mb-4">
-              [EMPTY] relays responded but no articles found
-            </p>
-            <button
-              onClick={refetch}
-              className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
-            >
-              &gt; retry fetch
-            </button>
-          </div>
-        ) : (
-          /* articles.length > 0 — streaming with articles, or done */
-          <>
-            <ContentFilterControls
-              filterEnabled={filterEnabled}
-              onFilterEnabledChange={setFilterEnabled}
-              spamThreshold={spamThreshold}
-              onSpamThresholdChange={setSpamThreshold}
-              filteredCount={filteredCount}
-              downloadProgress={downloadProgress}
-              modelFailed={modelFailed}
-            />
-            <FilterBar
-              facets={facets}
-              dynamicCounts={dynamicCounts}
-              selectedTags={selectedTags}
-              matchMode={matchMode}
-              onTagToggle={onTagToggle}
-              onMatchModeChange={setMatchMode}
-            />
-            {isFilterEmpty ? (
-              <div className="font-mono text-sm">
-                <p className="text-terminal-muted mb-4">
-                  [FILTER] no articles match the selected tags
+    <div className="crt-scanlines crt-flicker h-screen bg-terminal-bg flex flex-col overflow-hidden">
+      {/* Phase 3: progressive boot-then-stream (D-01) */}
+      {status === "streaming" && articles.length === 0 ? (
+        <BootSequence />
+      ) : status === "error" ? (
+        <div className="font-mono text-sm p-8">
+          <p className="text-terminal-amber mb-4">
+            [ERR] relay connection failed — all relays returned errors
+          </p>
+          <button
+            onClick={refetch}
+            className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+          >
+            &gt; retry connection
+          </button>
+        </div>
+      ) : status === "empty" ? (
+        <div className="font-mono text-sm p-8">
+          <p className="text-terminal-muted mb-4">
+            [EMPTY] relays responded but no articles found
+          </p>
+          <button
+            onClick={refetch}
+            className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+          >
+            &gt; retry fetch
+          </button>
+        </div>
+      ) : (
+        /* articles.length > 0 — streaming with articles, or done */
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
+          {/* Left panel: sidebar — pinned controls header + scrolling article list */}
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            <div className="flex flex-col h-full">
+              {/* Pinned sidebar header: filter controls (D-04) */}
+              <div className="shrink-0 px-4 pt-4">
+                <p className="crt-glow text-terminal-green-dim text-xs tracking-widest uppercase mb-3">
+                  soveng // nostr long-form reader
                 </p>
-                <button
-                  onClick={() => setSelectedTags(new Set())}
-                  className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
-                >
-                  &gt; clear filters
-                </button>
+                <ContentFilterControls
+                  filterEnabled={filterEnabled}
+                  onFilterEnabledChange={setFilterEnabled}
+                  spamThreshold={spamThreshold}
+                  onSpamThresholdChange={setSpamThreshold}
+                  filteredCount={filteredCount}
+                  downloadProgress={downloadProgress}
+                  modelFailed={modelFailed}
+                />
+                <FilterBar
+                  facets={facets}
+                  dynamicCounts={dynamicCounts}
+                  selectedTags={selectedTags}
+                  matchMode={matchMode}
+                  onTagToggle={onTagToggle}
+                  onMatchModeChange={setMatchMode}
+                />
               </div>
-            ) : (
-              <ArticleList articles={filteredArticles} profiles={profiles} status={status} />
-            )}
-          </>
-        )}
-      </main>
-      <footer className="w-full max-w-2xl mt-6">
-        <p className="text-terminal-muted text-xs">
-          powered by nostr · built with react + vite · zero backend
-        </p>
-      </footer>
+              {/* Scrolling article list region (P4 — overflow-y-auto on inner div, not ResizablePanel) */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4">
+                {isFilterEmpty ? (
+                  <div className="font-mono text-sm">
+                    <p className="text-terminal-muted mb-4">
+                      [FILTER] no articles match the selected tags
+                    </p>
+                    <button
+                      onClick={() => setSelectedTags(new Set())}
+                      className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+                    >
+                      &gt; clear filters
+                    </button>
+                  </div>
+                ) : (
+                  <ArticleList articles={filteredArticles} profiles={profiles} status={status} />
+                )}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          {/* Right panel: reading pane — placeholder until Plan 03 */}
+          <ResizablePanel>
+            <div className="flex-1 overflow-y-auto h-full flex items-center justify-center">
+              <p className="font-mono text-sm text-terminal-muted">
+                &gt; select an article to read
+              </p>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
     </div>
   )
 }
