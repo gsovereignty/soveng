@@ -57,7 +57,7 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 
 **Wave 1**
 
-  - [ ] 06-01-PLAN.md — Foundations: articleNaddr helper, index.css height chain (P9), shadcn resizable install
+  - [x] 06-01-PLAN.md — Foundations: articleNaddr helper, index.css height chain (P9), shadcn resizable install (completed 2026-06-09)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -111,6 +111,6 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Layout Scaffold & Routing | v1.2 | 0/4 | Not started | - |
+| 6. Layout Scaffold & Routing | v1.2 | 1/4 | Executing | - |
 | 7. Reading Pane & Enriched Rows | v1.2 | 0/? | Not started | - |
 | 8. Mobile Swap & Polish | v1.2 | 0/? | Not started | - |

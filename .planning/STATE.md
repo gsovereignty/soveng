@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Email-Client Layout
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-06-09T03:53:26.676Z"
-last_activity: 2026-06-09 -- Phase 06 planning complete
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-06-09T04:13:00.000Z"
+last_activity: 2026-06-09 -- Phase 06 Plan 01 completed
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -21,19 +21,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-08)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** v1.2 Email-Client Layout — roadmap complete, ready for Phase 6 planning
+**Current focus:** Phase 06 — layout-scaffold-routing
 
 ## Current Position
 
-Phase: Phase 6 (next — not yet started)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-09 -- Phase 06 planning complete
+Phase: 06 (layout-scaffold-routing) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 06 (Plan 01 complete)
+Last activity: 2026-06-09 -- Phase 06 Plan 01 completed
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
 v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
-v1.2 Email-Client Layout        [░░░░░░░░░░] ROADMAP READY  (0/3 phases)
+v1.2 Email-Client Layout        [██░░░░░░░░] EXECUTING  (1/4 plans done in Phase 06)
 ```
 
 ## Performance Metrics
@@ -111,6 +111,9 @@ Recent decisions affecting current work:
 - v1.2 roadmap: Mobile layout uses CSS visibility swap (not conditional unmount) — preserves list scroll position on back navigation
 - v1.2 roadmap: LINK-03 uses history.pushState (back navigates between reads) per explicit requirement — not replaceState
 - v1.2 roadmap: shadcn Resizable only; no shadcn Sidebar component; no wouter router library
+- 06-01: naddrEncode subpath import (nostr-tools/nip19) — coordinate fallback on encode failure (T-06-01)
+- 06-01: height:100% + overflow:hidden on html/body/#root — page-scroll guard for ResizablePanel layout
+- 06-01: shadcn CLI alias mismatch — generated file moved from @/ to src/ (CLI does not resolve @ alias in this env)
 
 ### Pending Todos
 
@@ -142,6 +145,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-09T03:34:06.019Z
-Stopped at: Phase 6 context gathered
-Resume: run `/gsd-plan-phase 6` to begin planning Phase 6: Layout Scaffold & Routing
+Last session: 2026-06-09T04:13:00.000Z
+Stopped at: Completed 06-01-PLAN.md
+Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 02
