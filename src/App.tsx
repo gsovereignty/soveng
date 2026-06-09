@@ -203,7 +203,7 @@ function AppShell() {
                     </button>
                   </div>
                 ) : (
-                  <ArticleList articles={filteredArticles} profiles={profiles} status={status} onSelectArticle={onSelectArticle} />
+                  <ArticleList articles={filteredArticles} profiles={profiles} status={status} onSelectArticle={onSelectArticle} selectedNaddr={selectedNaddr} />
                 )}
               </div>
             </div>

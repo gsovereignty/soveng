@@ -1,33 +1,14 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { ArticleBody } from "@/components/ArticleBody"
 import { formatTimestamp } from "@/lib/formatTimestamp"
-import { npubEncode } from "nostr-tools/nip19"
 import type { Article, Profile, NostrStatus } from "@/types/nostr"
+import { getMonogram, resolveDisplayName } from "@/lib/displayName"
 
 interface ReadingPaneStubProps {
   article: Article | null
   profile: Profile | undefined
   selectedNaddr: string
   status: NostrStatus
-}
-
-// Derive a 1–2 char monogram for the avatar fallback.
-// Uses display name initials when available; falls back to npub/hex prefix.
-// Copied from ArticleCard.tsx (ArticleCard is deleted in Phase 7).
-function getMonogram(profile: Profile | undefined, pubkey: string): string {
-  const name = profile?.displayName?.trim()
-  if (name) {
-    const words = name.split(/\s+/).filter(Boolean)
-    return words.length >= 2
-      ? (words[0][0] + words[1][0]).toUpperCase()
-      : name.slice(0, 2).toUpperCase()
-  }
-  // No display name yet — use start of truncated npub
-  try {
-    return npubEncode(pubkey).slice(5, 7).toUpperCase()
-  } catch {
-    return pubkey.slice(0, 2).toUpperCase()
-  }
 }
 
 export function ReadingPaneStub({ article, profile, selectedNaddr, status }: ReadingPaneStubProps) {
@@ -69,25 +50,14 @@ export function ReadingPaneStub({ article, profile, selectedNaddr, status }: Rea
   // Phase 7 inserts <ArticleBody> below this header — forward-compatible.
   if (!article) return null
 
-  // Title fallback chain (DISP-01) — copied verbatim from ArticleCard.tsx:35–38
+  // Title fallback chain (DISP-01) — verbatim from ArticleCard.tsx:35–38
   const displayTitle =
     article.title?.trim() ||
     article.summary?.trim().split(/[.!?\n]/)[0]?.slice(0, 80) ||
     "(untitled)"
 
-  // Author name fallback chain (DISP-02) — copied verbatim from ArticleCard.tsx:42–52
-  let displayName: string
-  const resolvedName = profile?.displayName?.trim()
-  if (resolvedName) {
-    displayName = resolvedName
-  } else {
-    try {
-      displayName = npubEncode(article.pubkey).slice(0, 12) + "…"
-    } catch {
-      displayName = article.pubkey.slice(0, 12) + "…"
-    }
-  }
-
+  // Author name + monogram via shared displayName helpers (hoisted from ArticleCard)
+  const displayName = resolveDisplayName(article, profile)
   const monogram = getMonogram(profile, article.pubkey)
 
   return (
