@@ -139,6 +139,14 @@ function AppShell() {
     window.location.hash = naddr
   }
 
+  // Mobile back handler (MOBILE-02) — clears selection and hash so the CSS-visibility
+  // swap restores the list pane. Because the list is always mounted (Pitfall 14), its
+  // scroll position is preserved; no list remount occurs.
+  function onBack() {
+    setSelectedNaddr('')
+    window.location.hash = ''
+  }
+
   return (
     <div className="crt-scanlines crt-flicker h-screen bg-terminal-bg flex flex-col overflow-hidden">
       {/* Phase 3: progressive boot-then-stream (D-01) */}
@@ -238,6 +246,7 @@ function AppShell() {
                 status={status}
                 hiddenByFilter={selectedHiddenByFilter}
                 onClearFilters={() => setSelectedTags(new Set())}
+                onBack={onBack}
               />
             </div>
           </ResizablePanel>

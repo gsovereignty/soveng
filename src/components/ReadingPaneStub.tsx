@@ -11,9 +11,10 @@ interface ReadingPaneStubProps {
   status: NostrStatus
   hiddenByFilter: boolean
   onClearFilters: () => void
+  onBack: () => void
 }
 
-export function ReadingPaneStub({ article, profile, selectedNaddr, status, hiddenByFilter, onClearFilters }: ReadingPaneStubProps) {
+export function ReadingPaneStub({ article, profile, selectedNaddr, status, hiddenByFilter, onClearFilters, onBack }: ReadingPaneStubProps) {
   // (a) No selection — placeholder state (D-07/READ-02)
   if (!selectedNaddr) {
     return (
@@ -82,6 +83,16 @@ export function ReadingPaneStub({ article, profile, selectedNaddr, status, hidde
 
   return (
     <div className="p-6 font-mono">
+      {/* MOBILE-02: back control — visible only below md; clears selection without unmounting the list
+          (list stays mounted via CSS-visibility swap in App.tsx, so scroll position is preserved).
+          Hidden at md+ where the desktop 2-pane split makes it unnecessary. */}
+      <button
+        onClick={onBack}
+        className="md:hidden crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-3 py-1 mb-4 hover:bg-terminal-surface transition-colors cursor-pointer"
+      >
+        &#x2039; back
+      </button>
+
       {/* Article title */}
       <div className="crt-glow text-terminal-green font-semibold text-base leading-snug mb-3">
         {displayTitle}
