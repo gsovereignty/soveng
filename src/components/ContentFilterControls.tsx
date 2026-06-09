@@ -56,7 +56,7 @@ export function ContentFilterControls({
             <span className="font-mono text-xs text-terminal-muted w-20 shrink-0">spam gate</span>
             <Slider
               min={50}
-              max={99}
+              max={100}
               step={1}
               value={[sliderValue]}
               onValueChange={([v]) => onSpamThresholdChange(v / 100)}
@@ -66,9 +66,9 @@ export function ContentFilterControls({
               {sliderValue}%
             </span>
           </div>
-          {sliderValue >= 99 && (
+          {sliderValue >= 100 && (
             <p className="font-mono text-xs text-terminal-muted pl-23">
-              &gt; max disables spam filter — use to recover false positives (D-07)
+              max disables spam filter — use to recover false positives (D-07)
             </p>
           )}
         </div>
