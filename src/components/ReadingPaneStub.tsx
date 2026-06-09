@@ -9,9 +9,11 @@ interface ReadingPaneStubProps {
   profile: Profile | undefined
   selectedNaddr: string
   status: NostrStatus
+  hiddenByFilter: boolean
+  onClearFilters: () => void
 }
 
-export function ReadingPaneStub({ article, profile, selectedNaddr, status }: ReadingPaneStubProps) {
+export function ReadingPaneStub({ article, profile, selectedNaddr, status, hiddenByFilter, onClearFilters }: ReadingPaneStubProps) {
   // (a) No selection — placeholder state (D-07/READ-02)
   if (!selectedNaddr) {
     return (
@@ -46,8 +48,26 @@ export function ReadingPaneStub({ article, profile, selectedNaddr, status }: Rea
     )
   }
 
-  // (d) Article present — render the header stub (D-06, no Markdown body)
-  // Phase 7 inserts <ArticleBody> below this header — forward-compatible.
+  // (d) Article present but hidden by the active filter — show notice + restore control (READ-04 / Pitfall 3).
+  // Do NOT auto-clear selection or mutate the hash — user may undo the filter to return to the article.
+  if (article && hiddenByFilter) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 font-mono text-sm">
+        <p className="text-terminal-muted">
+          [FILTER] this article is hidden by the current filter
+        </p>
+        <button
+          onClick={onClearFilters}
+          className="crt-glow border border-terminal-border text-terminal-green font-mono text-xs px-4 py-2 hover:bg-terminal-surface transition-colors cursor-pointer"
+        >
+          &gt; clear filters
+        </button>
+      </div>
+    )
+  }
+
+  // (e) Article present — render body (READ-01/D-06).
+  // rehype-sanitize boundary is inside ArticleBody — do not modify ArticleBody (Pitfall 8).
   if (!article) return null
 
   // Title fallback chain (DISP-01) — verbatim from ArticleCard.tsx:35–38

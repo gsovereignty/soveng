@@ -107,6 +107,14 @@ function AppShell() {
     return sortedArticles.find(a => articleNaddr(a) === selectedNaddr) ?? null
   }, [selectedNaddr, filteredArticles, sortedArticles])
 
+  // Derived: whether the selected article exists but is NOT in the filtered list (READ-04 / Pitfall 3).
+  // True only when the article resolved via the sortedArticles fallback (i.e. filter excludes it).
+  // This is a derived const, not new state — recomputes inline on each render from memo outputs.
+  // Note: clearing hashtag tags below restores the article to filteredArticles (in-pane affordance
+  // for hashtag-hidden articles); ML-filtered articles can also hide the article — user uses the
+  // ML toggle in the sidebar header for that path.
+  const selectedHiddenByFilter = !!selectedArticle && !filteredArticles.some(a => articleNaddr(a) === selectedNaddr)
+
   // Derived: empty-filter state (D-11) — NOT a NostrStatus variant
   const isFilterEmpty = selectedTags.size > 0 && filteredArticles.length === 0
 
@@ -220,6 +228,8 @@ function AppShell() {
                 profile={selectedArticle ? profiles.get(selectedArticle.pubkey) : undefined}
                 selectedNaddr={selectedNaddr}
                 status={status}
+                hiddenByFilter={selectedHiddenByFilter}
+                onClearFilters={() => setSelectedTags(new Set())}
               />
             </div>
           </ResizablePanel>
