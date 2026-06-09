@@ -148,6 +148,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260607-vqt | Don't stop at 21 events. Sort by number of replies. | 2026-06-07 | 0bfd4b2 | [260607-vqt-don-t-stop-at-21-events-sort-by-number-o](./quick/260607-vqt-don-t-stop-at-21-events-sort-by-number-o/) |
+| 2 | remove the scrollbar | 2026-06-09 | ce54266 | — |
 
 ## Deferred Items
 
