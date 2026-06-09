@@ -27,7 +27,7 @@ export function FilterBar({
   const hiddenCount = facets.length - CAP
 
   return (
-    <div className="sticky top-0 z-20 bg-terminal-bg border-b border-terminal-border py-2 px-0 mb-4">
+    <div className="bg-terminal-bg border-b border-terminal-border py-2 px-0 mb-4">
       <div className="flex items-center justify-between mb-2">
         <p className={cn("crt-glow text-terminal-green-dim text-xs tracking-widest uppercase")}>
           &gt; filter by tag
