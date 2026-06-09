@@ -80,26 +80,27 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | TBD | Pending roadmap |
-| LAYOUT-02 | TBD | Pending roadmap |
-| LAYOUT-03 | TBD | Pending roadmap |
-| LAYOUT-04 | TBD | Pending roadmap |
-| ENRICH-01 | TBD | Pending roadmap |
-| ROW-01 | TBD | Pending roadmap |
-| ROW-02 | TBD | Pending roadmap |
-| READ-01 | TBD | Pending roadmap |
-| READ-02 | TBD | Pending roadmap |
-| READ-03 | TBD | Pending roadmap |
-| READ-04 | TBD | Pending roadmap |
-| READ-05 | TBD | Pending roadmap |
-| LINK-01 | TBD | Pending roadmap |
-| LINK-02 | TBD | Pending roadmap |
-| LINK-03 | TBD | Pending roadmap |
-| MOBILE-01 | TBD | Pending roadmap |
-| MOBILE-02 | TBD | Pending roadmap |
-| MOBILE-03 | TBD | Pending roadmap |
+| LAYOUT-01 | Phase 6 | Pending |
+| LAYOUT-02 | Phase 6 | Pending |
+| LAYOUT-03 | Phase 6 | Pending |
+| LAYOUT-04 | Phase 6 | Pending |
+| LINK-01 | Phase 6 | Pending |
+| LINK-02 | Phase 6 | Pending |
+| LINK-03 | Phase 6 | Pending |
+| ENRICH-01 | Phase 7 | Pending |
+| ROW-01 | Phase 7 | Pending |
+| ROW-02 | Phase 7 | Pending |
+| READ-01 | Phase 7 | Pending |
+| READ-02 | Phase 7 | Pending |
+| READ-03 | Phase 7 | Pending |
+| READ-04 | Phase 7 | Pending |
+| READ-05 | Phase 7 | Pending |
+| MOBILE-01 | Phase 8 | Pending |
+| MOBILE-02 | Phase 8 | Pending |
+| MOBILE-03 | Phase 8 | Pending |
 
-**Coverage:** 0/18 mapped — filled by the roadmapper.
+**Coverage:** 18/18 mapped — Phase 6 (7 reqs), Phase 7 (8 reqs), Phase 8 (3 reqs).
 
 ---
 *Requirements defined: 2026-06-08 for milestone v1.2 Email-Client Layout*
+*Traceability filled: 2026-06-09 by roadmapper*

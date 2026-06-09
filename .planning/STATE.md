@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Email-Client Layout
-status: planning
-stopped_at: v1.2 milestone started — defining requirements
-last_updated: "2026-06-08T08:00:22.194Z"
-last_activity: 2026-06-08
+status: roadmap_complete
+stopped_at: roadmap created — ready for phase planning
+last_updated: "2026-06-09T00:00:00.000Z"
+last_activity: 2026-06-09
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,30 +21,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-08)
 
 **Core value:** Discover and read recent Nostr long-form articles, filtered by hashtag — with zero backend, served as a static GitHub Pages site.
-**Current focus:** v1.2 Email-Client Layout — defining requirements
+**Current focus:** v1.2 Email-Client Layout — roadmap complete, ready for Phase 6 planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 6 (next — not yet started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-08 — Milestone v1.2 Email-Client Layout started
+Status: Roadmap created
+Last activity: 2026-06-09 — v1.2 roadmap written (Phases 6-8, 18 requirements mapped)
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
 v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
-v1.2 Email-Client Layout        [░░░░░░░░░░] PLANNING  2026-06-08
+v1.2 Email-Client Layout        [░░░░░░░░░░] ROADMAP READY  (0/3 phases)
 ```
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15 (v1.0)
+- Total plans completed: 15 (v1.0) + 6 (v1.1) = 21
 - Average duration: —
 - Total execution time: —
 
-**By Phase (v1.0):**
+**By Phase (historical):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -103,22 +103,30 @@ Recent decisions affecting current work:
 - 05-05: spamThreshold added to visibleArticles dep array alongside classificationVersion — slider re-thresholding triggers memo re-eval even when version is stale
 - 05-05: filterEnabled default-on via lazy initializer !== 'false' (T-05-LSPARSE safe default)
 - 05-05: ContentFilterControls rendered above FilterBar inside the articles branch
+- v1.2 roadmap: Hash-based deep linking (window.location.hash) — no router library; zero-dep, correct for GitHub Pages static host
+- v1.2 roadmap: selectedNaddr state in AppShell (not NostrContext) — mirrors D-10 pattern; avoids re-render storm during relay streaming
+- v1.2 roadmap: selectedArticle memo searches filteredArticles first, falls back to sortedArticles — handles both cold-load and filter-hides-selection in one memo
+- v1.2 roadmap: Filter-hides-selection shows "hidden by filter" notice (READ-04) — avoids silently stale reading pane; user can clear filter to restore
+- v1.2 roadmap: ResizablePanel scroll fix via inner div h-full overflow-y-auto wrapper (shadcn-ui issue #3548) — must be scaffolded in Phase 6 before any content
+- v1.2 roadmap: Mobile layout uses CSS visibility swap (not conditional unmount) — preserves list scroll position on back navigation
+- v1.2 roadmap: LINK-03 uses history.pushState (back navigates between reads) per explicit requirement — not replaceState
+- v1.2 roadmap: shadcn Resizable only; no shadcn Sidebar component; no wouter router library
 
 ### Pending Todos
 
 - (Resolved 2026-06-08) Spam-score validation against live relays — done in 05-06: GO verdict, no over-filtering at 0.90.
 - (Resolved 2026-06-08) wasmPaths CDN version pin — derived in 05-02: 1.26.0-dev.20260416-b7804b056c.
 
-### Open for next milestone
+### Open for future milestones
 
 - SPAM-05: domain-tuned spam model if false-positive rates stay high after launch feedback.
 - SPAM-06: per-article "why filtered" disclosure.
 - MUTE-01: pubkey denylist / mute list.
+- DATA-02: reconcile requirement/constraint text ("21 most recent, newest first") with shipped behavior (uncapped, reply-count sort via 260607-vqt).
 
 ### Blockers/Concerns
 
 - None open.
-- Carry-forward note: DATA-02 requirement/constraint text ("21 most recent, newest first") diverges from shipped behavior (uncapped, reply-count sort via 260607-vqt) — reconcile in next milestone.
 
 ### Quick Tasks Completed
 
@@ -134,6 +142,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-08
-Stopped at: v1.1 milestone complete — archived and tagged v1.1
-Resume: run `/gsd-new-milestone` to scope the next milestone
+Last session: 2026-06-09
+Stopped at: v1.2 roadmap created — 3 phases (6-8), 18 requirements mapped
+Resume: run `/gsd-plan-phase 6` to begin planning Phase 6: Layout Scaffold & Routing
