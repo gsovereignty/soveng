@@ -8,6 +8,7 @@ import { NostrProvider } from "@/context/NostrContext"
 import { useNostr } from "@/context/NostrContext"
 import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
 import { sortArticlesByReplies, articleNaddr } from "@/lib/nostr"
+import { cn } from "@/lib/utils"
 import { useClassification } from "@/hooks/useClassification"
 import { isHidden } from "@/types/nostr"
 import { DEFAULT_SPAM_THRESHOLD } from "@/hooks/useClassification"
@@ -172,7 +173,11 @@ function AppShell() {
         <ResizablePanelGroup orientation="horizontal" className="flex-1">
           {/* Left panel: sidebar — pinned controls header + scrolling article list */}
           <ResizablePanel defaultSize="35%" minSize="25%" maxSize="50%">
-            <div className="flex flex-col h-full">
+            {/* MOBILE-01/P14: inner wrapper controls visibility — both panes always mounted
+                so list scroll position is preserved on back navigation (Pitfall 14).
+                Below md: hidden when an article is selected (reader takes full screen).
+                At md+: always visible regardless of selection. */}
+            <div className={cn("flex flex-col h-full", selectedNaddr ? "hidden md:flex" : "flex")}>
               {/* Pinned sidebar header: filter controls (D-04) */}
               <div className="shrink-0 px-4 pt-4">
                 <p className="crt-glow text-terminal-green-dim text-xs tracking-widest uppercase mb-3">
@@ -217,12 +222,15 @@ function AppShell() {
             </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle />
+          {/* MOBILE-03/P5: drag handle is desktop-only — hidden below md breakpoint */}
+          <ResizableHandle withHandle className="hidden md:flex" />
 
           {/* Right panel: reading pane — ReadingPaneStub drives all states (Plan 03) */}
           <ResizablePanel>
-            {/* P10/READ-03: key resets scrollTop to 0 when article changes (React remounts on key change) */}
-            <div key={selectedNaddr} className="flex-1 overflow-y-auto h-full">
+            {/* MOBILE-01/P14: complementary visibility to sidebar — reading pane is visible
+                on mobile only when an article is selected; always visible at md+.
+                P10/READ-03: key resets scrollTop to 0 when article changes (React remounts on key change) */}
+            <div key={selectedNaddr} className={cn("flex-1 overflow-y-auto h-full", selectedNaddr ? "block md:block" : "hidden md:block")}>
               <ReadingPaneStub
                 article={selectedArticle ?? null}
                 profile={selectedArticle ? profiles.get(selectedArticle.pubkey) : undefined}
