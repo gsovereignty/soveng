@@ -41,9 +41,9 @@
 
 ### Mobile
 
-- [ ] **MOBILE-01**: On narrow screens the layout becomes a single full-screen pane — the article list by default, swapping to the full-screen reader when an article is selected.
-- [ ] **MOBILE-02**: The mobile reader shows a terminal-styled "‹ back" control that returns to the list with its scroll position preserved (CSS visibility swap, not conditional unmount).
-- [ ] **MOBILE-03**: The `Resizable` split handle is suppressed below the `md` breakpoint (no resize affordance on mobile).
+- [x] **MOBILE-01**: On narrow screens the layout becomes a single full-screen pane — the article list by default, swapping to the full-screen reader when an article is selected.
+- [x] **MOBILE-02**: The mobile reader shows a terminal-styled "‹ back" control that returns to the list with its scroll position preserved (CSS visibility swap, not conditional unmount).
+- [x] **MOBILE-03**: The `Resizable` split handle is suppressed below the `md` breakpoint (no resize affordance on mobile).
 
 ## Future Requirements (deferred beyond v1.2)
 
@@ -99,9 +99,9 @@
 | READ-03 | Phase 6 | Complete |
 | READ-04 | Phase 6 | Complete |
 | READ-05 | Phase 6 | Pending |
-| MOBILE-01 | Phase 6 | Pending |
-| MOBILE-02 | Phase 6 | Pending |
-| MOBILE-03 | Phase 6 | Pending |
+| MOBILE-01 | Phase 6 | Complete |
+| MOBILE-02 | Phase 6 | Complete |
+| MOBILE-03 | Phase 6 | Complete |
 
 **Coverage:** 18/18 mapped — all 18 reqs consolidated into Phase 6 (Phases 7 & 8 folded in 2026-06-09 per scope-consolidation request).
 
