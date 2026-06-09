@@ -1,4 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { ArticleBody } from "@/components/ArticleBody"
 import { formatTimestamp } from "@/lib/formatTimestamp"
 import { npubEncode } from "nostr-tools/nip19"
 import type { Article, Profile, NostrStatus } from "@/types/nostr"
@@ -111,6 +112,11 @@ export function ReadingPaneStub({ article, profile, selectedNaddr, status }: Rea
         <span className="truncate max-w-[12rem]">{displayName}</span>
         <span className="text-terminal-muted select-none">/</span>
         <span className="text-terminal-muted shrink-0">{formatTimestamp(article.publishedAt)}</span>
+      </div>
+
+      {/* Full article body — Markdown rendered in the reading pane (sanitized). */}
+      <div className="mt-6 border-t border-terminal-border pt-6">
+        <ArticleBody content={article.content} />
       </div>
     </div>
   )

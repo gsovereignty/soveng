@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from "react"
 import type { Article, Profile, NostrStatus } from "@/types/nostr"
 import { ArticleCard } from "@/components/ArticleCard"
 import { Accordion } from "@/components/ui/accordion"
@@ -12,18 +11,8 @@ interface ArticleListProps {
 }
 
 export function ArticleList({ articles, profiles, status, onSelectArticle }: ArticleListProps) {
-  // D-03: single open accordion — controlled value
-  const [openId, setOpenId] = useState<string>('')
-
-  // D-10: when filter changes and the open article is excluded from articles,
-  // collapse it so nothing is orphaned open
-  const articleIds = useMemo(() => new Set(articles.map(a => a.id)), [articles])
-  useEffect(() => {
-    if (openId && !articleIds.has(openId)) {
-      setOpenId('')
-    }
-  }, [articleIds, openId])
-
+  // Master-detail: rows are selection-only. The accordion is held permanently
+  // collapsed (value="") so the body renders in the reading pane, not inline here.
   return (
     <div className={cn("w-full max-w-2xl flex flex-col")}>
       {/* Slim streaming status line (D-02) — updates live while streaming, resolves when done */}
@@ -39,17 +28,16 @@ export function ArticleList({ articles, profiles, status, onSelectArticle }: Art
         )}
       </header>
 
-      {/* Article accordion — single open (D-03), controlled state with D-10 clear effect */}
+      {/* Selection-only list — accordion forced collapsed (value=""); chevron hidden
+          since expansion is disabled (the body now renders in the reading pane). */}
       <Accordion
         type="single"
         collapsible
-        value={openId}
-        onValueChange={setOpenId}
-        className="flex flex-col gap-2"
+        value=""
+        className="flex flex-col gap-2 [&_[data-slot=accordion-trigger]_svg]:hidden"
       >
         {articles.map((article) => (
           // Outer div captures click for reading-pane selection (LINK-01).
-          // Additive only — does not remove the accordion expand behavior (Phase 7 deletes these components).
           <div
             key={article.id}
             onClick={() => onSelectArticle?.(article)}
