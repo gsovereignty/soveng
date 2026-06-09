@@ -63,6 +63,14 @@
     padding: 0;
     min-height: 100vh;
   }
+  /* Hide scrollbars everywhere while keeping scroll functionality */
+  * {
+    scrollbar-width: none;            /* Firefox */
+    -ms-overflow-style: none;         /* old Edge/IE */
+  }
+  *::-webkit-scrollbar {
+    display: none;                    /* WebKit/Blink */
+  }
 }
 
 /* CRT phosphor glow on text */
