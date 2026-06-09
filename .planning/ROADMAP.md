@@ -66,7 +66,7 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
   10. The mobile reading pane shows a terminal-styled "‹ back" control; tapping it returns to the article list at the same scroll position the user was at before opening the article
   11. The Resizable drag handle is not visible or interactive on mobile viewports; the desktop 2-pane split is only present at the md breakpoint and above
 
-**Plans**: 3 complete (06-01..03); reading-pane/rows/mobile plans pending (re-planning for the folded-in scope)
+**Plans**: 7 plans (06-01..03 complete; 06-04..07 planned 2026-06-09)
 
 **Wave 1**
 
@@ -81,12 +81,21 @@ Full phase details archived in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROAD
   - [x] 06-03-PLAN.md — Deep-link routing + reading-pane stub: selectedNaddr/hash sync, selectedArticle memo, 404/loading states (LINK-01..03) (completed 2026-06-09)
   - [~] Reading-pane body (READ-01/READ-05) partially pulled forward 2026-06-09 (commit dd680bb): ArticleBody renders in the pane, sidebar accordion disabled. Remaining READ/ENRICH/ROW/MOBILE work to be planned.
 
-**Subsequent waves** *(folded-in scope — to be planned)*
+**Wave 4** *(blocked on Wave 3 completion)*
 
-  - [ ] Reading pane: scroll-reset (READ-03), hidden-by-filter notice (READ-04), finalize ArticleBody reuse (READ-01/02/05)
-  - [ ] Enriched rows: SidebarRow with avatar/title/timestamp/summary/thumbnail (ENRICH-01), untrusted-image hardening (ROW-01), selected-row highlight (ROW-02); delete ArticleCard/ArticleList
-  - [ ] Mobile: single-pane list/reader swap preserving scroll (MOBILE-01/02), suppress Resizable handle below md (MOBILE-03)
-  - [ ] Human-verify checkpoint: all 11 success criteria (supersedes the original 06-04)
+  - [ ] 06-04-PLAN.md — Enriched SidebarRow + accordion removal: avatar/name/title/timestamp/summary/thumbnail, untrusted-image hardening, selected-row highlight, delete ArticleCard (ENRICH-01, ROW-01, ROW-02, READ-05)
+
+**Wave 5** *(blocked on Wave 4 — shares src/App.tsx)*
+
+  - [ ] 06-05-PLAN.md — Reading-pane polish: scroll-reset on article switch + hidden-by-filter notice with restore control; reconfirm sanitized body + placeholder (READ-01, READ-02, READ-03, READ-04)
+
+**Wave 6** *(blocked on Wave 5 — shares src/App.tsx)*
+
+  - [ ] 06-06-PLAN.md — Mobile single-pane swap: CSS-visibility list/reader swap preserving scroll, '‹ back' control, suppress Resizable handle below md (MOBILE-01, MOBILE-02, MOBILE-03)
+
+**Wave 7** *(blocked on Waves 4-6 — final verification)*
+
+  - [ ] 06-07-PLAN.md — Human-verify checkpoint: automated build/test/security gate + browser verification of all 11 success criteria (supersedes the original 06-04)
 
 **UI hint**: yes
 
@@ -107,6 +116,6 @@ Requirements (MOBILE-01/02/03) and success criteria moved into Phase 6 above.
 | 3. Article List | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 4. Filtering & Inline Reader | v1.0 | 2/2 | Complete | 2026-06-07 |
 | 5. ML Content Filtering | v1.1 | 6/6 | Complete | 2026-06-08 |
-| 6. Email-Client Layout (full v1.2) | v1.2 | 3/? | Executing | - |
+| 6. Email-Client Layout (full v1.2) | v1.2 | 3/7 | Executing | - |
 | ~~7. Reading Pane & Enriched Rows~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |
 | ~~8. Mobile Swap & Polish~~ | v1.2 | — | Folded into Phase 6 | 2026-06-09 |
