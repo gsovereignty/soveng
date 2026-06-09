@@ -213,7 +213,8 @@ function AppShell() {
 
           {/* Right panel: reading pane — ReadingPaneStub drives all states (Plan 03) */}
           <ResizablePanel>
-            <div className="flex-1 overflow-y-auto h-full">
+            {/* P10/READ-03: key resets scrollTop to 0 when article changes (React remounts on key change) */}
+            <div key={selectedNaddr} className="flex-1 overflow-y-auto h-full">
               <ReadingPaneStub
                 article={selectedArticle ?? null}
                 profile={selectedArticle ? profiles.get(selectedArticle.pubkey) : undefined}
