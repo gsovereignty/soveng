@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Email-Client Layout
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-09T04:13:00.000Z"
-last_activity: 2026-06-09 -- Phase 06 Plan 01 completed
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-06-09T05:30:00.000Z"
+last_activity: 2026-06-09 -- Phase 06 Plan 02 completed
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State
@@ -26,14 +26,14 @@ See: .planning/PROJECT.md (updated 2026-06-08)
 ## Current Position
 
 Phase: 06 (layout-scaffold-routing) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 06 (Plan 01 complete)
-Last activity: 2026-06-09 -- Phase 06 Plan 01 completed
+Plan: 3 of 4
+Status: Executing Phase 06 (Plan 02 complete)
+Last activity: 2026-06-09 -- Phase 06 Plan 02 completed
 
 ```
 v1.0 MVP                        [██████████] SHIPPED 2026-06-07
 v1.1 Local ML Content Filtering [██████████] SHIPPED 2026-06-08
-v1.2 Email-Client Layout        [██░░░░░░░░] EXECUTING  (1/4 plans done in Phase 06)
+v1.2 Email-Client Layout        [████░░░░░░] EXECUTING  (2/4 plans done in Phase 06)
 ```
 
 ## Performance Metrics
@@ -114,6 +114,9 @@ Recent decisions affecting current work:
 - 06-01: naddrEncode subpath import (nostr-tools/nip19) — coordinate fallback on encode failure (T-06-01)
 - 06-01: height:100% + overflow:hidden on html/body/#root — page-scroll guard for ResizablePanel layout
 - 06-01: shadcn CLI alias mismatch — generated file moved from @/ to src/ (CLI does not resolve @ alias in this env)
+- 06-02: ResizablePanelGroup uses orientation prop (not direction) — react-resizable-panels API
+- 06-02: overflow-y-auto on inner div inside each ResizablePanel, never on the panel itself (P4/#3548)
+- 06-02: h-screen + overflow-hidden outer shell; shrink-0 pinned header + flex-1 overflow-y-auto sidebar list
 
 ### Pending Todos
 
@@ -145,6 +148,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-09T04:13:00.000Z
-Stopped at: Completed 06-01-PLAN.md
-Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 02
+Last session: 2026-06-09T05:30:00.000Z
+Stopped at: Completed 06-02-PLAN.md
+Resume: run `/gsd-execute-phase 6` to continue Phase 6: Plan 03
