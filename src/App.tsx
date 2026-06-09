@@ -3,6 +3,7 @@ import { BootSequence } from "@/components/BootSequence"
 import { ArticleList } from "@/components/ArticleList"
 import { FilterBar } from "@/components/FilterBar"
 import { ContentFilterControls } from "@/components/ContentFilterControls"
+import { ReadingPaneStub } from "@/components/ReadingPaneStub"
 import { NostrProvider } from "@/context/NostrContext"
 import { useNostr } from "@/context/NostrContext"
 import { buildFacets, computeDynamicCounts, filterArticles } from "@/lib/facets"
@@ -202,7 +203,7 @@ function AppShell() {
                     </button>
                   </div>
                 ) : (
-                  <ArticleList articles={filteredArticles} profiles={profiles} status={status} />
+                  <ArticleList articles={filteredArticles} profiles={profiles} status={status} onSelectArticle={onSelectArticle} />
                 )}
               </div>
             </div>
@@ -210,12 +211,15 @@ function AppShell() {
 
           <ResizableHandle withHandle />
 
-          {/* Right panel: reading pane — placeholder until Plan 03 */}
+          {/* Right panel: reading pane — ReadingPaneStub drives all states (Plan 03) */}
           <ResizablePanel>
-            <div className="flex-1 overflow-y-auto h-full flex items-center justify-center">
-              <p className="font-mono text-sm text-terminal-muted">
-                &gt; select an article to read
-              </p>
+            <div className="flex-1 overflow-y-auto h-full">
+              <ReadingPaneStub
+                article={selectedArticle ?? null}
+                profile={selectedArticle ? profiles.get(selectedArticle.pubkey) : undefined}
+                selectedNaddr={selectedNaddr}
+                status={status}
+              />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

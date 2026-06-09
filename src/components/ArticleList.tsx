@@ -8,9 +8,10 @@ interface ArticleListProps {
   articles: Article[]
   profiles: Map<string, Profile>
   status: NostrStatus
+  onSelectArticle?: (article: Article) => void
 }
 
-export function ArticleList({ articles, profiles, status }: ArticleListProps) {
+export function ArticleList({ articles, profiles, status, onSelectArticle }: ArticleListProps) {
   // D-03: single open accordion — controlled value
   const [openId, setOpenId] = useState<string>('')
 
@@ -47,11 +48,21 @@ export function ArticleList({ articles, profiles, status }: ArticleListProps) {
         className="flex flex-col gap-2"
       >
         {articles.map((article) => (
-          <ArticleCard
+          // Outer div captures click for reading-pane selection (LINK-01).
+          // Additive only — does not remove the accordion expand behavior (Phase 7 deletes these components).
+          <div
             key={article.id}
-            article={article}
-            profile={profiles.get(article.pubkey)}
-          />
+            onClick={() => onSelectArticle?.(article)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectArticle?.(article) }}
+            className="cursor-pointer"
+          >
+            <ArticleCard
+              article={article}
+              profile={profiles.get(article.pubkey)}
+            />
+          </div>
         ))}
       </Accordion>
     </div>
